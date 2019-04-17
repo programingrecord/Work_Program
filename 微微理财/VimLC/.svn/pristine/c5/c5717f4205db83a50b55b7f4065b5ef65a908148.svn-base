@@ -1,0 +1,126 @@
+//
+//  MSUHomeNotifaController.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/16.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUHomeNotifaController.h"
+
+#import "MSUHomeNotifaTableCell.h"
+
+#import "MSUStringTools.h"
+
+@interface MSUHomeNotifaController ()<UITableViewDelegate,UITableViewDataSource,DZNEmptyDataSetSource,DZNEmptyDataSetDelegate>
+
+@property (nonatomic , strong) UITableView *tableView;
+
+@property (nonatomic , assign) NSInteger cellHeight;
+
+@end
+
+@implementation MSUHomeNotifaController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+    self.title = @"消息通知";
+    self.view.backgroundColor = BGWhiteColor;
+    
+    self.tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight) style:UITableViewStylePlain];
+    _tableView.backgroundColor = BGWhiteColor;
+    _tableView.scrollEnabled = YES;
+    _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    _tableView.showsVerticalScrollIndicator = NO;
+    [self.view addSubview:_tableView];
+    self.tableView.delegate = self;
+    self.tableView.dataSource = self;
+    _tableView.emptyDataSetSource = self;
+    _tableView.emptyDataSetDelegate = self;
+    self.tableView.panGestureRecognizer.delaysTouchesBegan = self.tableView.delaysContentTouches;
+    [_tableView registerClass:[MSUHomeNotifaTableCell class] forCellReuseIdentifier:@"MSUHomeNotifaTableCell"];
+    if (iOS11) {
+        _tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    } else{
+        self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+#pragma mark - 代理
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return 2;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return self.cellHeight;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    MSUHomeNotifaTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MSUHomeNotifaTableCell"];
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.backgroundColor = BGWhiteColor;
+    
+    cell.titLab.text = @"虚拟标题";
+    cell.dateLab.text = @"1017-5-3 周二 10:02";
+    cell.contentLab.text = @"我好搜我好搜地挥洒我活动is大活动is活动i破is激动is好的搜ID号IP搜啊和地馊怕等会扫地红色的hi哎啥；哦你电话奥萨大祭司怕的就是";
+    CGRect rectA = [MSUStringTools danamicGetHeightFromText:cell.contentLab.text WithWidth:kDeviceWidth-27*kDeviceWidthScale font:14];
+    cell.contentLab.frame = CGRectMake(15*kDeviceWidthScale, 46.5*kDeviceHeightScale, kDeviceWidth-54*kDeviceWidthScale, rectA.size.height);
+    [MSUStringTools changeLineSpaceForLabel:cell.contentLab WithSpace:5.0];
+    cell.bgView.frame = CGRectMake(12*kDeviceWidthScale, 12*kDeviceHeightScale, kDeviceWidth-24*kDeviceWidthScale, 66*kDeviceHeightScale+rectA.size.height);
+    
+    self.cellHeight = 78*kDeviceHeightScale+rectA.size.height ;
+    
+    return cell;
+}
+
+- (BOOL)emptyDataSetShouldBeForcedToDisplay:(UIScrollView *)scrollView{
+    return NO;
+}
+- (CGFloat)verticalOffsetForEmptyDataSet:(UIScrollView *)scrollView{
+    return kDeviceWidth/4+28;
+}
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
+{
+    return [UIImage imageNamed:@""];
+}
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    text = @"";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.tableView.mj_header beginRefreshing];
+}
+
+
+@end

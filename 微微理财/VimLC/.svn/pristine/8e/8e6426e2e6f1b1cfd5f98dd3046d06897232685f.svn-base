@@ -1,0 +1,147 @@
+//
+//  loanCell.m
+//  项目开发
+//
+//  Created by 姜国军 on 14-4-2.
+//  Copyright (c) 2014年 姜国军. All rights reserved.
+//
+
+#import "loanCell.h"
+#import "loanModel.h"
+
+@implementation loanCell
+
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
+{
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        
+    }
+    return self;
+}
+- (void)awakeFromNib{
+    [super awakeFromNib];
+    _bidButton.layer.cornerRadius = 18;
+    _TypeLebel.transform = CGAffineTransformMakeRotation (-M_PI_4);
+}
+- (void)setModel:(loanModel *)model{
+    if (_model != model) {
+        _model =model;
+    }
+    _TypeLebel.text = [NSString stringWithFormat:@"%@",_model.borrowTypeOther];
+
+    if ([_model.borrowTypeOther isEqualToString:@"米粒宝"]) {
+        _TypeImage.image = [UIImage imageNamed:@"trade_List_Red"];
+        _BorrowType.text = [NSString stringWithFormat:@"%@",_model.borrowTypeOther];
+        _BorrowTitle.text = [NSString stringWithFormat:@"%@ | %@ | %@",_model.currentTip1,_model.currentTip2,_model.currentTip3];
+        _BorrowDate.text = _model.timeCount;
+        NSString *rateString =[NSString stringWithFormat:@"%@%%",_model.rate];
+        NSMutableAttributedString *Astring1 = [[NSMutableAttributedString alloc] initWithString:rateString];
+        [Astring1 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:20] range:NSMakeRange(0, rateString.length)];
+        [Astring1 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:36] range:NSMakeRange(0, rateString.length-1)];
+        [Astring1 addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0xFF0000] range:NSMakeRange(0, rateString.length)];
+        _Borrowrate.attributedText = Astring1;
+        
+        [_bidButton setBackgroundColor:[UIColor colorWithHex:0x5381FF]];
+        [_bidButton setTitle:@"立即投资" forState:UIControlStateNormal];
+        _bidButton.enabled = YES;
+        _BottomLineview.hidden = YES;
+        _LineView.hidden = YES;
+        _BorrowMinAmount.hidden = YES;
+        _BorrowAmount.hidden = YES;
+        _TypeWidth.constant = 56;
+    }else{
+        
+        _TypeImage.image = [UIImage imageNamed:@"trade_List_Yellow"];
+        _BottomLineview.hidden = NO;
+        _LineView.hidden = NO;
+        _BorrowMinAmount.hidden = NO;
+        _BorrowAmount.hidden = NO;
+        _BorrowDate.text = _model.timeCount;
+        NSString *rateString =[NSString stringWithFormat:@"%@%@",_model.rate,_model.rateIncrease];
+        NSRange range1= [rateString rangeOfString:_model.rate];
+        NSMutableAttributedString *Astring1 = [[NSMutableAttributedString alloc] initWithString:rateString];
+        [Astring1 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:16] range:NSMakeRange(0, rateString.length)];
+        [Astring1 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:32] range:NSMakeRange(0, range1.length-1)];
+        [Astring1 addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0xFF0000] range:range1];
+        _Borrowrate.attributedText = Astring1;
+
+        
+        NSString *completePercentString =[NSString stringWithFormat:@"投资进度%@％",_model.completePercent];
+        NSRange range2= [completePercentString rangeOfString:_model.completePercent];
+        NSMutableAttributedString *Astring2 = [[NSMutableAttributedString alloc] initWithString:completePercentString];
+        [Astring2 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:14.0] range:range2];
+        [Astring2 addAttribute:NSForegroundColorAttributeName value:RGBA(255, 114, 31, 1) range:range2];
+        
+        _BorrowAmount.text = [NSString stringWithFormat:@"总额：%@",_model.amount];
+        _BorrowMinAmount.text = [NSString stringWithFormat:@"%@元起",_model.minBidAmount];
+        _ProgressView.progress = [[NSString stringWithFormat:@"%@",_model.completePercent] floatValue]/100;
+
+        
+        if ([_model.borrowTypeOther isEqualToString:@"体验标"]) {
+            _BorrowMinAmount.text = @"体验金投资";
+            if ([_model.borrowState isEqualToString:@"招标中"]) {
+                [_bidButton setBackgroundColor:[UIColor colorWithHex:0x5381FF]];
+                [_bidButton setTitle:@"招标中" forState:UIControlStateNormal];
+                _bidButton.enabled = YES;
+                
+            }else{
+                _bidButton.enabled = NO;
+                [_bidButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+                [_bidButton setTitle:@"已结束" forState:UIControlStateNormal];
+            }
+        }else{
+            _BorrowMinAmount.text = [NSString stringWithFormat:@"剩余可投：%@",_model.maxBidAmount];
+            
+            if ([_model.borrowState isEqualToString:@"流标"]) {
+                _bidButton.enabled = NO;
+                [_bidButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+                [_bidButton setTitle:@"流标" forState:UIControlStateNormal];
+                
+            }else if([_model.borrowState isEqualToString:@"招标中"]){
+                [_bidButton setBackgroundColor:[UIColor colorWithHex:0x5381FF]];
+                [_bidButton setTitle:@"立即投资" forState:UIControlStateNormal];
+                _bidButton.enabled = YES;
+                
+            }else if([_model.borrowState isEqualToString:@"已还清"]){
+                [_bidButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+                [_bidButton setTitle:@"已还清" forState:UIControlStateNormal];
+                _bidButton.enabled = NO;
+                
+            }else if([_model.borrowState isEqualToString:@"逾期"]){
+                [_bidButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+                [_bidButton setTitle:@"逾期" forState:UIControlStateNormal];
+                _bidButton.enabled = NO;
+                
+            }else if([_model.borrowState isEqualToString:@"还款中"]){
+                [_bidButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+                [_bidButton setTitle:@"还款中" forState:UIControlStateNormal];
+                _bidButton.enabled = NO;
+                
+            }else{
+                //            [_bidButton setBackgroundColor:[UIColor colorWithHex:0xFB6337]];
+                //            [_bidButton setTitle:_model.borrowState forState:UIControlStateNormal];
+                //            _bidButton.enabled = NO;
+            }
+        }
+        _BorrowType.text = [NSString stringWithFormat:@"%@",_model.title];
+        _TypeWidth.constant = kDeviceWidth-120;
+    }
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated
+{
+    [super setSelected:selected animated:animated];
+
+}
+- (IBAction)buttonClick:(id)sender {
+    
+    if (self.block) {
+        self.block();
+    }
+}
+
+- (void)dealloc {
+   
+}
+@end

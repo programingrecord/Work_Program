@@ -1,0 +1,155 @@
+//
+//  DataRequestServer.m
+//  WTJR
+//
+//  Created by HM on 16/6/3.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "DataRequestServer.h"
+
+static DataRequestServer *DataRequestServerObj = nil;
+
+@implementation DataRequestServer
++(DataRequestServer*) getDataRequestServerData{
+    static dispatch_once_t once;
+    dispatch_once( &once, ^{
+        if(!DataRequestServerObj){
+            DataRequestServerObj = [[self alloc] init];
+        }
+    });
+    return DataRequestServerObj;
+}
+- (void)request:(NSString *)urlString  parameters:(NSMutableDictionary *) parameters result:(RequestBlock ) block{
+    self.resultBlock = block;
+    NSString *URLString = [NSString stringWithFormat:@"%@%@",Base_url,urlString];
+    
+    MyLog(@"URLString=%@=%@",URLString,parameters);
+
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFHTTPRequestSerializer serializer];
+    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    manager.requestSerializer.timeoutInterval = 60;
+
+    [manager.requestSerializer setValue:@"LUNA.APP.U.AGENT" forHTTPHeaderField:@"User-Agent"];
+
+    [manager POST:URLString parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
+        
+    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
+        
+        MyLog(@"%@=%@",urlString,dic);
+        block(dic);
+
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        block(@"44");
+        MyLog(@"%@=%@",urlString,error);
+    }];
+}
+- (void)requestLoginparameters:(NSMutableDictionary *)parameters result:(RequestBlock ) block{
+    
+    
+    self.resultBlock = block;
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFHTTPRequestSerializer serializer];
+    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    manager.requestSerializer.timeoutInterval = 60;
+
+    [manager.requestSerializer setValue:@"LUNA.APP.U.AGENT" forHTTPHeaderField:@"User-Agent"];
+
+    NSString *URLString =[NSString stringWithFormat:@"%@login.do",Base_url];
+    [manager POST:URLString parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
+        
+    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
+        block(dic);
+        
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        AFHTTPSessionManager *manager2 = [AFHTTPSessionManager manager];
+        manager2.requestSerializer = [AFHTTPRequestSerializer serializer];
+        manager2.responseSerializer = [AFHTTPResponseSerializer serializer];
+        [manager2.requestSerializer setValue:@"LUNA.APP.U.AGENT" forHTTPHeaderField:@"User-Agent"];
+        
+        NSString *URLString2 =[NSString stringWithFormat:@"%@LunaP2pAppLoginServlet",Base_url];
+        [manager POST:URLString2 parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
+            
+        } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
+            NSLog(@"requestLoginparameters2=%@",dic);
+            block(dic);
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            block(@"44");
+            
+        }];
+    }];
+}
+
+
+- (void)requestLoginresult:(RequestLoginBlock)LoginBlock{
+
+    self.LoginBlock = LoginBlock;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *NSdic = [defaults objectForKey:@"registerData"];
+    NSString *username = [NSdic objectForKey:@"UserName"];
+    NSString *password = [NSdic objectForKey:@"PassWord"];
+    NSMutableDictionary *parms = [[NSMutableDictionary alloc] init];//登陆保存的字典
+    if (username == nil || password == nil) {
+        [CoreArchive removeNSUserDefaults];
+        self.LoginBlock(@"false");
+        return;
+    }
+    [parms setObject:username forKey:@"username"];
+    [parms setObject:password forKey:@"password"];
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFHTTPRequestSerializer serializer];
+    manager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    [manager.requestSerializer setValue:@"LUNA.APP.U.AGENT" forHTTPHeaderField:@"User-Agent"];
+    NSString *URLString =[NSString stringWithFormat:@"%@login.do",Base_url];
+    [manager POST:URLString parameters:parms progress:^(NSProgress * _Nonnull uploadProgress) {
+        
+    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
+        NSString *value = [dic objectForKey:@"errorlog"];
+        int  isNeedToActive =[[dic objectForKey:@"isNeedToActivated"]intValue];
+        int  success = [[dic objectForKey:@"success"]intValue];
+        if ([value isEqualToString:@""]&& success==1 && isNeedToActive !=1){
+            self.LoginBlock(@"true");
+        }else{
+            [CoreArchive removeNSUserDefaults];
+            self.LoginBlock(@"false");
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+        AFHTTPSessionManager *manager2 = [AFHTTPSessionManager manager];
+        manager2.requestSerializer = [AFHTTPRequestSerializer serializer];
+        manager2.responseSerializer = [AFHTTPResponseSerializer serializer];
+        [manager2.requestSerializer setValue:@"LUNA.APP.U.AGENT" forHTTPHeaderField:@"User-Agent"];
+        NSString *URLString2 =[NSString stringWithFormat:@"%@LunaP2pAppLoginServlet",Base_url];
+
+        [manager2 POST:URLString2 parameters:parms progress:^(NSProgress * _Nonnull uploadProgress) {
+            
+        } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
+            NSString *value = [dic objectForKey:@"errorlog"];
+            int  isNeedToActive =[[dic objectForKey:@"isNeedToActivated"]intValue];
+            int  success = [[dic objectForKey:@"success"]intValue];
+            if ([value isEqualToString:@""]&& success==1 && isNeedToActive !=1){
+                self.LoginBlock(@"true");
+                
+            }else{
+                [CoreArchive removeNSUserDefaults];
+                self.LoginBlock(@"false");
+            }
+
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            [CoreArchive removeNSUserDefaults];
+            
+            self.LoginBlock(@"false");
+        }];
+    }];
+
+    
+}
+
+
+@end

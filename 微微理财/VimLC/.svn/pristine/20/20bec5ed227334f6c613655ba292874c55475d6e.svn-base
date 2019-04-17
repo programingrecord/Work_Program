@@ -1,0 +1,853 @@
+//
+//  BuyTradeViewController.m
+//  WTJR
+//
+//  Created by H on 16/6/14.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "BuyTradeViewController.h"
+#import "LoginViewController.h"
+#import "TopUpViewController.h"
+#import "LockNameViewController.h"
+#import "RealViewController.h"
+#import "AddCardViewController.h"
+#import "PasswordModifyVC.h"
+#import "WebViewController.h"
+#import "MSUTradeCompleteController.h"
+
+#import "MSUBuyCenterView.h"
+#import "MSUBuyJuanView.h"
+#import "MSUShadowInView.h"
+#import "MSUStringTools.h"
+
+@interface BuyTradeViewController ()<UITextFieldDelegate,MSUBuyJuanViewDelegate>
+@property (weak, nonatomic) IBOutlet UITextField *AmountText;
+@property (weak, nonatomic) IBOutlet UILabel *CanuserLable;
+@property (nonatomic,assign) NSInteger hasPassWord;
+@property (nonatomic,strong) UIView *alphaView;
+@property (nonatomic,strong) UITextField *topTX;
+@property (nonatomic,strong) NSMutableArray *dataSource;
+@property (nonatomic,strong) NSMutableDictionary *paramDic;
+@property (weak, nonatomic) IBOutlet UILabel *LeftAmountLable;
+@property (weak, nonatomic) IBOutlet UILabel *RateLabel;
+@property (weak, nonatomic) IBOutlet UILabel *DateLabel;
+@property (weak, nonatomic) IBOutlet UIButton *AgreeMentButton;
+@property (nonatomic,strong) NSString *availableAmount;
+@property (weak, nonatomic) IBOutlet UIButton *SureButton;
+
+@property (nonatomic , strong) MSUShadowInView *shadowView;
+@property (nonatomic , strong) MSUBuyJuanView *seleJuanView;
+
+@property (nonatomic , strong) MSUBuyCenterView *buyCenView;
+
+@property (nonatomic , assign) double shouyi;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *bottomH;
+
+@property (nonatomic , strong) NSMutableArray *quanArr;
+@property (nonatomic , strong) NSMutableArray *cuponArr;
+@property (nonatomic , copy) NSString *moneyStr;
+@property (nonatomic , copy) NSString *quanID;
+@property (nonatomic , copy) NSString *quanType;
+@property (nonatomic , copy) NSString *leftStr;
+
+@end
+
+@implementation BuyTradeViewController
+
+#pragma mark - UI
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self getOneDetailInfo];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+//    self.title = _dataDic[@"borrowTypeOther"];
+    self.title = @"购买";
+
+    self.DateLabel.text = [NSString stringWithFormat:@"投资期限：%@",_dataDic[@"timeCount"]];
+    
+    NSString *str1 = [_dataDic objectForKey:@"rate"];
+    NSString *str2 = [_dataDic objectForKey:@"rateIncrease"];
+    CGFloat count1 = [[str1 substringWithRange:NSMakeRange(0, str1.length-1)] doubleValue];
+    CGFloat count2 = 0.0;
+    if (str2.length > 0) {
+        count2 = [[str2 substringWithRange:NSMakeRange(0, str2.length-1)] doubleValue];
+    }
+    self.shouyi = count1+count2;
+    
+    NSString *rateString =[NSString stringWithFormat:@"%.2f%%",count1+count2];
+    NSRange range1= [rateString rangeOfString:_dataDic[@"rate"]];
+    NSMutableAttributedString *rateAstring = [[NSMutableAttributedString alloc] initWithString:rateString];
+    [rateAstring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:NSMakeRange(0, rateString.length)];
+    [rateAstring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:31] range:NSMakeRange(0, range1.length-1)];
+    [rateAstring addAttribute:NSForegroundColorAttributeName value:titOrangeColor range:range1];
+    self.RateLabel.attributedText = rateAstring;
+    
+    UILabel *lable = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 20,self.AmountText.height)];
+    lable.text = @"¥";
+    lable.font = TEXTFONT(24);
+    lable.textColor = [UIColor colorWithHex:0x4a4a4a];
+    lable.textAlignment = NSTextAlignmentCenter;
+    self.AmountText.leftView = lable;
+    self.AmountText.leftViewMode = UITextFieldViewModeAlways;
+    [self.AmountText addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
+    self.AmountText.inputAccessoryView = [self addToolbar];
+    
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(resignKeyBoard:)];
+    [self.view addGestureRecognizer:tapGesture];
+
+    self.buyCenView = [[MSUBuyCenterView alloc] init];
+    if (is_iPhoneX) {
+        _buyCenView.frame = CGRectMake(0, 240, kDeviceWidth, 150*kDeviceHeightScale);
+        self.bottomH.constant = 140+60;
+    } else{
+        if ([UIScreen mainScreen].bounds.size.width == 375.f) {
+            _buyCenView.frame = CGRectMake(0, 240*kDeviceHeightScale, kDeviceWidth, 150*kDeviceHeightScale);
+            self.bottomH.constant = 120+50;
+            
+        } else if ([UIScreen mainScreen].bounds.size.width >= 414.f) {
+            _buyCenView.frame = CGRectMake(0, 220*kDeviceHeightScale, kDeviceWidth, 150*kDeviceHeightScale);
+            self.bottomH.constant = 140+50;
+        } else if ([UIScreen mainScreen].bounds.size.width == 320.f){
+            _buyCenView.frame = CGRectMake(0, 240, kDeviceWidth, 150*kDeviceHeightScale);
+            self.bottomH.constant = 100+50;
+        }
+    }
+   
+    _buyCenView.backgroundColor = WhiteColor;
+    [self.view addSubview:_buyCenView];
+}
+
+- (NSMutableAttributedString *)setAttriButedString:(NSString *)string font:(UIFont *)font color:(UIColor *)color searchString:(NSString *)searchString font:(UIFont *)searchfont color:(UIColor *)searchcolor {
+    NSRange range = NSMakeRange(0,string.length);
+    
+    NSRange range1= [string rangeOfString:searchString];
+    
+    NSMutableAttributedString *Astring = [[NSMutableAttributedString alloc] initWithString:string];
+    [Astring addAttribute:NSFontAttributeName value:font  range:range];
+    [Astring addAttribute:NSForegroundColorAttributeName value:color range:range1];
+    
+    [Astring addAttribute:NSFontAttributeName value:searchfont range:range1];
+    [Astring addAttribute:NSForegroundColorAttributeName value:searchcolor range:range1];
+    return Astring;
+}
+
+- (UIView *)addPassWordView{
+    UIView *WhiteView = [[UIView alloc] init];
+    WhiteView.center = CGPointMake(_alphaView.center.x, _alphaView.center.y-60);
+    WhiteView.bounds = CGRectMake(0, 0, _alphaView.width-80, 200);
+    WhiteView.backgroundColor = [UIColor whiteColor];
+    [_alphaView addSubview:WhiteView];
+    
+    UIButton *CancelButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    CancelButton.layer.cornerRadius = 5;
+    CancelButton.layer.borderColor = RGBA(237, 128, 17, 1).CGColor;
+    CancelButton.frame = CGRectMake(WhiteView.width-30, 10,16, 16);
+    [CancelButton setBackgroundImage:[UIImage imageNamed:@"icon-close"] forState:UIControlStateNormal];
+    [CancelButton addTarget:self action:@selector(cancelClick) forControlEvents:UIControlEventTouchUpInside];
+    [WhiteView addSubview:CancelButton];
+    
+    UILabel *titleLable = [[UILabel alloc] init];
+    titleLable.frame = CGRectMake(20,10, WhiteView.width-40, 30);
+    titleLable.text = @"请输入投标密码";
+    titleLable.font = [UIFont systemFontOfSize:18.0];
+    titleLable.textColor = RGBA(51, 51, 51, 1);
+    titleLable.textAlignment = NSTextAlignmentCenter;
+    [WhiteView addSubview:titleLable];
+    
+    _topTX = [[UITextField alloc] init ];
+    _topTX.frame = CGRectMake(20, titleLable.bottom +15, WhiteView.width-40, 45);
+    _topTX.borderStyle = UITextBorderStyleRoundedRect;
+    _topTX.secureTextEntry = YES;
+    _topTX.placeholder = @"请输入投标密码";
+    _topTX.delegate = self;
+    _topTX.clearButtonMode = UITextFieldViewModeWhileEditing;
+    _topTX.clearsOnBeginEditing = YES;
+    [WhiteView addSubview:_topTX];
+    [_topTX becomeFirstResponder];
+    
+    UIButton *SureButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    SureButton.layer.cornerRadius = 5;
+    SureButton.layer.borderColor = RGBA(237, 128, 17, 1).CGColor;
+    SureButton.frame = CGRectMake(20, _topTX.bottom + 20,WhiteView.width-40, 40);
+    [SureButton setTitle:@"确 认" forState:UIControlStateNormal];
+    [SureButton setBackgroundColor:RGBA(255, 127, 39, 1)];
+    [SureButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [SureButton addTarget:self action:@selector(addpassword) forControlEvents:UIControlEventTouchUpInside];
+    [WhiteView addSubview:SureButton];
+    
+    return WhiteView;
+}
+
+#pragma mark - 请求数据
+- (void)getOneDetailInfo{
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    [params setObject:_dataDic[@"lunaP2pBorrowId"] forKey:@"brid"];
+    
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    
+    //  您有几张优惠券
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppAllcouponServlet" parameters:nil result:^(id result) {
+            if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+            }else{
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+
+                int t = [[result objectForKey:@"success"] intValue];
+                if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& t==0){//要加上未登录的判断
+                    [self requestLogin];
+                }else if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& t==1){
+                    NSArray *dataArr = [result objectForKey:@"couponArr"];
+                    if (dataArr.count > 0) {
+                        // 几月标
+                        self.cuponArr = [NSMutableArray array];
+                        NSString *timeStr = [NSString stringWithFormat:@"%@",_dataDic[@"timeCount"]];
+                        for (NSDictionary *dic in dataArr) {
+                            NSString *styleStr = [NSString stringWithFormat:@"%@",dic[@"bidName"]];
+                            if ([styleStr containsString:timeStr]) {
+                                [_cuponArr addObject:dic];
+                            }
+                        }
+                        
+                        if (_cuponArr.count > 0) {
+                            _buyCenView.topLab.text = [NSString stringWithFormat:@"您有%ld张优惠券",_cuponArr.count];
+                            _buyCenView.topLab.textColor = titOrangeColor;
+                            _buyCenView.topBtn.enabled = YES;
+                            [_buyCenView.topBtn addTarget:self action:@selector(topBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+                        } else{
+                            _buyCenView.topLab.text = @"暂无可用的优惠券";
+                            _buyCenView.topBtn.enabled = NO;
+                        }
+
+                    } else{
+                        _buyCenView.topLab.text = @"暂无可用的优惠券";
+                        _buyCenView.topBtn.enabled = NO;
+                    }
+                }else{
+                    [AddHudView addProgressView:self.view message:@"获取数据失败，请重新获取"];
+                }
+            }
+        }];
+    });
+    
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppBidServlet?" parameters:params result:^(id result) {
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
+
+            int t = [[result objectForKey:@"success"] intValue];
+           
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& t==1){
+
+                NSArray *arr= [result objectForKey:@"items"];
+                NSDictionary *dic = arr[0];
+                
+                self.availableAmount =[[NSString stringWithFormat:@"%@",[dic objectForKey:@"availableAmount"]] stringByReplacingOccurrencesOfString:@"," withString:@""];
+
+                self.moneyStr = [dic objectForKey:@"availableAmount"];
+                NSString *Userstring =[NSString stringWithFormat:@"可用余额：%@元",_moneyStr];
+                NSMutableAttributedString *UserstringAtt = [self setAttriButedString:Userstring font:TEXTFONT(14) color:[UIColor colorWithHex:0x4A4A4A] searchString:[dic objectForKey:@"availableAmount"] font:TEXTFONT(14) color:[UIColor colorWithHex:0xFF6339]];
+                
+                _CanuserLable.attributedText = UserstringAtt;
+
+                self.leftStr = [[NSString stringWithFormat:@"%@",[dic objectForKey:@"canBidMaxAmount"]] stringByReplacingOccurrencesOfString:@"," withString:@""];
+                _LeftAmountLable.text = [NSString stringWithFormat:@"剩余可投：%@元",[dic objectForKey:@"canBidMaxAmount"]];
+                
+                _hasPassWord = [[dic objectForKey:@"hasPassword"] intValue];
+            }else{
+                [AddHudView addProgressView:self.view message:@"获取数据失败，请重新获取"];
+            }
+        }
+    }];
+}
+
+- (void)requestLogin{
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *NSdic = [defaults objectForKey:@"registerData"];
+    NSString *username = [NSdic objectForKey:@"UserName"];
+    NSString *password = [NSdic objectForKey:@"PassWord"];
+
+    NSMutableDictionary *parms = [[NSMutableDictionary alloc] init];//登录保存的字典
+    if (username == nil || password == nil) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+
+        [CoreArchive removeNSUserDefaults];
+        LoginViewController *loginVc= [[LoginViewController alloc] init];
+        loginVc.hidesBottomBarWhenPushed = YES;
+
+        [self.navigationController pushViewController:loginVc animated:YES];
+        return;
+    }
+    
+    [parms setObject:username forKey:@"username"];
+    [parms setObject:password forKey:@"password"];
+    
+    [[DataRequestServer getDataRequestServerData]requestLoginparameters:parms result:^(id result) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+
+        if ([result isKindOfClass:[NSString class]]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];        }else{
+            
+            NSString *value = [result objectForKey:@"errorlog"];
+            int  isNeedToActive =[[result objectForKey:@"isNeedToActivated"]intValue];
+            int  success = [[result objectForKey:@"success"]intValue];
+            if ([value isEqualToString:@""] && success ==1) {
+                if (isNeedToActive == 1)
+                {
+                    [CoreArchive removeNSUserDefaults];
+                    LoginViewController *loginVc= [[LoginViewController alloc] init];
+                    loginVc.loginType=logintypePush;
+                    loginVc.hidesBottomBarWhenPushed = YES;
+
+                    [self.navigationController pushViewController:loginVc animated:YES];
+                }
+                else{
+                    [self getOneDetailInfo];
+                }
+            }else{
+                [CoreArchive removeNSUserDefaults];
+
+                LoginViewController *loginVc= [[LoginViewController alloc] init];
+                loginVc.loginType=logintypeHome;
+                loginVc.hidesBottomBarWhenPushed = YES;
+
+                [self.navigationController pushViewController:loginVc animated:YES];
+            }
+        }
+    }];
+}
+
+- (void)requestBuy{
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppBiddingServlet" parameters:_paramDic result:^(id result) {
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int t = [[result objectForKey:@"success"] intValue];
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& t==0){//要加上未登录的判断
+                [self requestLogin];
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& t==1){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                
+                NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+                NSDictionary *NSdic = [userDefaults objectForKey:@"registerData"];
+                NSString *username = [NSdic objectForKey:@"UserName"];
+                [TalkingData trackEvent:@"投标" label:@"投资成功" parameters:@{@"投资用户":username,@"投资金额":_AmountText.text}];
+                
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    MSUTradeCompleteController   *resultVC= [[MSUTradeCompleteController alloc] init];
+                    [self.navigationController pushViewController:resultVC animated:YES];
+                });
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@"bidAmountLessThanZero"]&& t==0){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                
+                [AddHudView addProgressView:self.view message:@"投标金额小于最小投标"];
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@"bidAmountLargerThanAmountLeft"]&& t==0){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                [AddHudView addProgressView:self.view message:@"投标金额大于最大投标"];
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@"badBidPassword"]&& t==0){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                [AddHudView addProgressView:self.view message:@"投标密码错误"];
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@"lessThanMinBidAmount"]&& t==0){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                [AddHudView addProgressView:self.view message:@"投标金额小于最小投标"];
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@"largerThanAvailableAmount"]&& t==0){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                if (![CoreArchive isLockedBank]) {
+                    [UIAlertTool showAlertView:self TitleString:@"温馨提示" MessageString:@"未添加银行卡，请前往添加" CancelButtonString:@"取消" OhterButtonString:@"添加" confirmBlock:^{
+                        AddCardViewController *AddCardVC =[[AddCardViewController alloc] init];
+                        [self.navigationController pushViewController:AddCardVC animated:YES];
+                    } cancleBlock:^{
+                        
+                    }];
+                }else{
+                    [UIAlertTool showAlertView:self TitleString:@"温馨提示" MessageString:@"账户余额不足，请充值" CancelButtonString:@"取消" OhterButtonString:@"充值" confirmBlock:^{
+                        TopUpViewController *TopUpVC = [[TopUpViewController alloc] init];
+                        TopUpVC.hidesBottomBarWhenPushed = YES;
+                        [self.navigationController pushViewController:TopUpVC animated:YES];
+                    } cancleBlock:^{
+                        
+                    }];
+                }
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@"cannotBidItself"]&& t==0){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                [AddHudView addProgressView:self.view message:@"不能给自己借款投标"];
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@"cantNwBorrow"]&& t==0){
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                [AddHudView addProgressView:self.view message:@"新手标只能投资一次，您已经投资过"];
+            }
+            else{
+                [MBProgressHUD hideHUDForView:self.view animated:YES];
+                [AddHudView addProgressView:self.view message:@"获取数据失败，请重新获取"];
+            }
+        }
+    }];
+}
+
+-(BOOL)isValidateFloat:(NSString *)phoneStr {
+    NSString *phoneRegex = @"^(?:[1-9][0-9]*\\.[0-9]+|0\\.(?!0+$)[0-9]+)$";
+    NSPredicate *phoneTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", phoneRegex];
+    return [phoneTest evaluateWithObject:phoneStr];
+}
+
+-(BOOL)isValidateInt:(NSString *)phoneStr {
+    NSString *phoneRegex = @"^[1-9][0-9]*$";
+    NSPredicate *phoneTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", phoneRegex];
+    return [phoneTest evaluateWithObject:phoneStr];
+}
+
+
+#pragma mark - 点击事件
+- (IBAction)AgreeMentButtonClick:(id)sender {
+    self.AgreeMentButton.selected = !self.AgreeMentButton.selected;
+}
+
+- (IBAction)BuyClick:(id)sender {
+    if (!self.AgreeMentButton.selected) {
+        [AddHudView addProgressView:self.view message:@"同意《微米在线服务协议》"];
+        return;
+    }
+    [self.view endEditing:YES];
+    UIButton *button = (UIButton *)sender;
+    if ([button.titleLabel.text isEqualToString:@"余额不足，去充值"]) {
+        if (![CoreArchive isLockedBank]) {
+            [UIAlertTool showAlertView:self TitleString:@"温馨提示" MessageString:@"未添加银行卡，请前往添加" CancelButtonString:@"取消" OhterButtonString:@"添加" confirmBlock:^{
+                AddCardViewController *AddCardVC =[[AddCardViewController alloc] init];
+                [self.navigationController pushViewController:AddCardVC animated:YES];
+            } cancleBlock:^{
+                
+            }];
+        }else{
+            TopUpViewController *TopUpVC = [[TopUpViewController alloc] init];
+            TopUpVC.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:TopUpVC animated:YES];
+        }
+        return;
+    }
+    
+    if (![self isValidateFloat:_AmountText.text] && ![self isValidateInt:_AmountText.text]) {
+        [AddHudView addProgressView:self.view message:@"请您填写正确格式的投标金额"];
+        return;
+    }
+    
+    if (_AmountText.text.length == 0) {
+        [AddHudView addProgressView:self.view message:@"投标金额不能为空"];
+        return;
+    }
+
+    _paramDic = [[NSMutableDictionary alloc] init];
+    [_paramDic setObject:_AmountText.text forKey:@"bidAmount"];
+    [_paramDic setObject:_dataDic[@"lunaP2pBorrowId"] forKey:@"brid"];
+    if (self.quanID.length == 0) {
+        self.quanID = @"";
+    }
+    if (self.quanType.length == 0) {
+        self.quanType = @"";
+    }
+    [_paramDic setObject:self.quanID forKey:@"RedPackedId"];
+    [_paramDic setObject:self.quanType forKey:@"type"];
+
+    if (_hasPassWord == 1) {
+        if (!_alphaView) {
+            _alphaView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, self.view.height)];
+            _alphaView.backgroundColor = [RGBA(62, 62, 62, 1) colorWithAlphaComponent:0.6];
+            [self.view addSubview:_alphaView];
+        }
+        for (UIView *views in _alphaView.subviews) {
+            [views removeFromSuperview];
+        }
+        [_alphaView addSubview:[self addPassWordView]];
+    }else{
+        [self requestBuy];
+    }
+}
+
+- (void)addpassword{
+    if (_topTX.text.length>0) {
+        [_paramDic setObject:_topTX.text forKey:@"bidPassword"];
+    }
+    [_paramDic setObject:_topTX.text forKey:@"bidPassword"];
+    [self requestBuy];
+    [_alphaView removeFromSuperview];
+    _alphaView = nil;
+}
+
+- (void)forgotPassWord{
+    [_alphaView removeFromSuperview];
+    _alphaView = nil;
+    
+    PasswordModifyVC  *passWordVC = [[PasswordModifyVC alloc] init];
+    [self.navigationController pushViewController:passWordVC animated:YES];
+    passWordVC.title=@"修改交易密码";
+}
+
+- (void)cancelClick{
+    [_alphaView removeFromSuperview];
+    _alphaView = nil;
+}
+
+- (IBAction)RechargeButtonClick:(id)sender {
+    [self KeyboardresignFirstResponder];
+    NSString *availStr = [self.availableAmount stringByReplacingOccurrencesOfString:@"," withString:@""];
+    NSString *allStr;
+    if (availStr.floatValue > _leftStr.floatValue) {
+        allStr = _leftStr;
+    } else {
+        allStr = availStr;
+    }
+    self.AmountText.text = allStr;
+
+    NSString *timeStr = _dataDic[@"timeCount"];
+    NSString *str = [timeStr substringWithRange:NSMakeRange(timeStr.length-1,1)];
+    if ([str isEqualToString:@"天"]) {
+        NSString *day = [timeStr substringWithRange:NSMakeRange(0, timeStr.length-1)];
+        NSInteger dayCount = [day integerValue];
+        _buyCenView.centerLab.text = [NSString stringWithFormat:@"%.2f元",dayCount/360.00*self.shouyi/100.00*[self.AmountText.text doubleValue]];
+    } else if ([str isEqualToString:@"月"]){
+        _buyCenView.centerLab.text = [NSString stringWithFormat:@"%.2f元",self.shouyi/12.00/100.00*[self.AmountText.text doubleValue]];
+    }
+    _buyCenView.bottomLab.text = [NSString stringWithFormat:@"%@元",self.AmountText.text];
+    
+    [self fiterCupon];
+}
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    switch (alertView.tag) {
+        case 1000:
+        {
+            [self popViewController];
+        }
+            break;
+        case 1001:
+        {
+            if (buttonIndex==1) {
+                LockNameViewController *LockName =[[LockNameViewController alloc] init];
+                [self.navigationController pushViewController:LockName animated:YES];
+            }
+        }
+            break;
+        case 1002:
+        {
+            if (buttonIndex==1) {
+                RealViewController *RealNameVC =[[RealViewController alloc] init];
+                [self.navigationController pushViewController:RealNameVC animated:YES];
+            }
+        }
+            break;
+        case 1003:
+        {
+            if (buttonIndex==1) {
+                AddCardViewController *AddCardVC =[[AddCardViewController alloc] init];
+                [self.navigationController pushViewController:AddCardVC animated:YES];
+            }
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+- (void)popViewController{
+    if (self.presentingViewController != nil) {
+        [self dismissViewControllerAnimated:YES completion:NULL];
+        
+    }else {
+        [self.navigationController popViewControllerAnimated:YES];
+    }
+}
+
+- (IBAction)AgreeButtonclick:(id)sender {
+    WebViewController *webVC = [[WebViewController alloc] init];
+    webVC.UrlString =@"http://www.vimzx.com/wap/current_sample.htm";
+    webVC.title = @"微米服务协议";
+    [self.navigationController pushViewController:webVC animated:YES];
+}
+
+- (void)topBtnClick:(UIButton *)sender{
+    //待定
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *dic = [defaults objectForKey:@"registerData"];
+    if ([dic objectForKey:@"UserName"]&&[dic objectForKey:@"PassWord"] ) {
+        self.shadowView.hidden = NO;
+        self.seleJuanView.hidden = NO;
+        self.seleJuanView.priceNum = self.AmountText.text.integerValue;
+        if (self.AmountText.text.length > 0) {
+            self.seleJuanView.dataArr = [self.quanArr mutableCopy];
+        } else{
+            self.seleJuanView.dataArr = [self.cuponArr mutableCopy];
+        }
+    } else{
+        [self requestLogin];
+    }
+//    NSString *amoStr = [_moneyStr stringByReplacingOccurrencesOfString:@"," withString:@""];
+//    if (self.AmountText.text.integerValue >= 2000 && amoStr.integerValue >= 2000) {
+//        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//        NSDictionary *dic = [defaults objectForKey:@"registerData"];
+//        if ([dic objectForKey:@"UserName"]&&[dic objectForKey:@"PassWord"] ) {
+//            self.shadowView.hidden = NO;
+//            self.seleJuanView.hidden = NO;
+//            self.seleJuanView.priceNum = self.AmountText.text.integerValue;
+//            self.seleJuanView.dataArr = [self.quanArr mutableCopy];
+//        } else{
+//            [self requestLogin];
+//        }
+//    } else{
+//        [AddHudView addProgressView:self.view message:@"存入金额和可用余额需大于2000方可查看"];
+//    }
+}
+
+- (void)noUseABtnClick:(UIButton *)sender{
+    self.shadowView.hidden = YES;
+    _buyCenView.topLab.textColor = titOrangeColor;
+    _buyCenView.topLab.text = [NSString stringWithFormat:@"您有%ld张优惠券",self.cuponArr.count];
+    self.quanID = @"";
+    self.quanType = @"";
+}
+
+#pragma mark - 初始化
+- (MSUShadowInView *)shadowView{
+    if (!_shadowView) {
+        _shadowView = [[MSUShadowInView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight)];
+        _shadowView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
+        [MSUMainWindow addSubview:_shadowView];
+    }
+    return _shadowView;
+}
+
+- (MSUBuyJuanView *)seleJuanView{
+    if (!_seleJuanView) {
+        _seleJuanView = [[MSUBuyJuanView alloc] initWithFrame:CGRectMake(0, kDeviceHeight-288*kDeviceHeightScale, kDeviceWidth, 288*kDeviceHeightScale)];
+        _seleJuanView.backgroundColor = BGWhiteColor;
+        [_seleJuanView.noUseABtn addTarget:self action:@selector(noUseABtnClick:) forControlEvents:UIControlEventTouchUpInside];
+        [self.shadowView addSubview:_seleJuanView];
+        _seleJuanView.delegate = self;
+    }
+    return _seleJuanView;
+}
+
+#pragma mark - UITextField
+- (UIToolbar *)addToolbar {
+    UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), 40)];
+    toolbar.tintColor = [UIColor colorWithHex:0x4A90E2];
+    toolbar.backgroundColor = [UIColor whiteColor];
+    UIBarButtonItem *flbSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+    UIBarButtonItem *doneItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"完成",nil) style:UIBarButtonItemStylePlain target:self action:@selector(textFieldDone)];
+    toolbar.items = @[flbSpace,doneItem];
+    return toolbar;
+}
+
+- (void)textFieldDone{
+    [self.view endEditing:YES];
+}
+
+- (void)textFieldDidChange:(UITextField *)filed{
+    if (filed.text.length>0) {
+        NSNumber *a=[NSNumber numberWithFloat:filed.text.floatValue];
+        NSNumber *b=[NSNumber numberWithFloat:self.availableAmount.floatValue];
+        if ([b compare:a]==NSOrderedAscending){
+            [self.SureButton setTitle:@"余额不足，去充值" forState:UIControlStateNormal];
+        }else{
+            [self.SureButton setTitle:@"确认存入" forState:UIControlStateNormal];
+        }
+        
+        NSString *timeStr = _dataDic[@"timeCount"];
+        NSString *str = [timeStr substringWithRange:NSMakeRange(timeStr.length-1,1)];
+        if ([str isEqualToString:@"天"]) {
+            NSString *day = [timeStr substringWithRange:NSMakeRange(0, timeStr.length-1)];
+            NSInteger dayCount = [day integerValue];
+            _buyCenView.centerLab.text = [NSString stringWithFormat:@"%.2f元",dayCount/360.00*self.shouyi/100.00*[filed.text doubleValue]];
+        } else if ([str isEqualToString:@"月"]){
+            NSString *month = [timeStr substringWithRange:NSMakeRange(0, timeStr.length-1)];
+            NSInteger monthCount = [month integerValue];
+            _buyCenView.centerLab.text = [NSString stringWithFormat:@"%.2f元",monthCount*self.shouyi/12.00/100.00*[filed.text doubleValue]];
+        }
+        _buyCenView.bottomLab.text = [NSString stringWithFormat:@"%@元",filed.text];
+        
+        [self fiterCupon];
+    }else{
+        _buyCenView.topLab.textColor = titOrangeColor;
+        _buyCenView.topLab.text = [NSString stringWithFormat:@"您有%ld张优惠券",self.cuponArr.count];
+        [self.SureButton setTitle:@"确认存入" forState:UIControlStateNormal];
+        _buyCenView.bottomLab.text = @"0元";
+        _buyCenView.centerLab.text = @"0元";
+    }
+}
+
+- (void)fiterCupon{
+    // 筛选符合条件红包
+    self.quanArr = [NSMutableArray array];
+    NSMutableArray *cuponArr = [self.cuponArr mutableCopy];
+    for (NSInteger i = 0; i < cuponArr.count; i++) {
+        NSDictionary  *dic = cuponArr[i];
+        // 红包金额
+        NSString *priStr = [NSString stringWithFormat:@"%@",dic[@"useRule"]];
+        NSString *str1;
+        if ([priStr containsString:@"."]) {
+            str1 = [priStr substringToIndex:[priStr rangeOfString:@"."].location];
+        }  else{
+            str1 = priStr;
+        }
+        NSString *aaaStr;
+        if (str1.length > 0) {
+            aaaStr = [str1 substringFromIndex:1];
+        } else{
+            aaaStr = str1;
+        }
+        
+//        // 几月标
+//        NSString *styleStr = [NSString stringWithFormat:@"%@",dic[@"bidName"]];
+//        NSString *timeStr = [NSString stringWithFormat:@"%@",_dataDic[@"timeCount"]];
+        
+        //            MyLog(@"====%@======%ld=====%ld",aaaStr,i,self.AmountText.text.integerValue);
+        if (aaaStr.integerValue <= self.AmountText.text.integerValue) {
+//            [cuponArr removeObject:dic];
+            [self.quanArr addObject:dic];
+        }
+    }
+    
+    if (self.quanArr.count == 0) {
+        _buyCenView.topLab.textColor = titQianColor;
+        _buyCenView.topLab.text = [NSString stringWithFormat:@"暂无可用的优惠券"];
+    } else{
+        NSDictionary *dic = self.quanArr[0];
+        [self changeBuyCenterViewUIWithDic:dic];
+    }
+}
+
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
+{
+    BOOL isHaveDian;
+    if ([textField.text rangeOfString:@"."].location == NSNotFound)
+    {
+        isHaveDian = NO;
+    }else{
+        isHaveDian = YES;
+    }
+    if ([string length] > 0)
+    {
+        unichar single = [string characterAtIndex:0];//当前输入的字符
+        if ((single >= '0' && single <= '9') || single == '.')//数据格式正确
+        {
+            //首字母不能为0和小数点
+            if([textField.text length] == 0)
+            {
+                if(single == '.')
+                {
+                    [textField.text stringByReplacingCharactersInRange:range withString:@""];
+                    return NO;
+                }
+                
+                if (single == '0')
+                {
+                    [textField.text stringByReplacingCharactersInRange:range withString:@""];
+                    
+                    return NO;
+                }
+            }
+            //输入的字符是否是小数点
+            if (single == '.')
+            {
+                if(!isHaveDian)//text中还没有小数点
+                {
+                    isHaveDian = YES;
+                    return YES;
+                }else{
+                    [textField.text stringByReplacingCharactersInRange:range withString:@""];
+                    return NO;
+                }
+            }else{
+                if (isHaveDian) {//存在小数点
+                    //判断小数点的位数
+                    NSRange ran = [textField.text rangeOfString:@"."];
+                    if (range.location - ran.location <= 2) {
+                        return YES;
+                    }else{
+                        return NO;
+                    }
+                }else{
+                    return YES;
+                }
+            }
+        }else{//输入的数据格式不正确
+            [textField.text stringByReplacingCharactersInRange:range withString:@""];
+            return NO;
+        }
+    }
+    else
+    {
+        return YES;
+    }
+}
+
+- (void)resignKeyBoard:(UITapGestureRecognizer *)tap{
+    [self KeyboardresignFirstResponder];
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField{
+    [self KeyboardresignFirstResponder];
+    return YES;
+}
+
+- (void)KeyboardresignFirstResponder
+{
+    if ([_AmountText isFirstResponder])//判断是否是第一响应
+    {
+        [_AmountText resignFirstResponder];
+    }
+}
+
+- (void)cellDidSelectWithDic:(NSDictionary *)dataDic{
+    self.shadowView.hidden = YES;
+    [self changeBuyCenterViewUIWithDic:dataDic];
+}
+
+- (void)changeBuyCenterViewUIWithDic:(NSDictionary *)dataDic{
+    self.quanID = [NSString stringWithFormat:@"%@",dataDic[@"couponId"]];
+   
+    NSString *quanType = [NSString stringWithFormat:@"%@",dataDic[@"name"]];
+    if ([quanType containsString:@"红包"]) {
+        self.quanType = @"1";// 红包对应@“1”
+    } else {
+        self.quanType = @"";
+    }
+    NSString *str = [NSString stringWithFormat:@"%@",dataDic[@"price"]];
+//    NSString *price = [str substringFromIndex:1];
+    NSString *finaStr;
+    if ([str containsString:@"."]) {
+        finaStr = [str substringToIndex:[str rangeOfString:@"."].location];
+    }  else{
+        finaStr = str;
+    }
+    _buyCenView.topLab.textColor = titQianColor;
+    _buyCenView.topLab.attributedText = [MSUStringTools makeKeyWordAttributedWithSubText:finaStr inOrigiText:[NSString stringWithFormat:@"您已选择%@%@",finaStr,quanType] font:14 color:titOrangeColor];
+    _buyCenView.topBtn.enabled = YES;
+//    NSInteger priceInter = self.AmountText.text.integerValue - price.integerValue;
+//    _buyCenView.bottomLab.text = [NSString stringWithFormat:@"%ld元",priceInter];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

@@ -1,0 +1,35 @@
+//
+//  NewTableViewCell.h
+//  VimLC
+//
+//  Created by 慧明 on 2017/11/7.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "loanModel.h"
+
+typedef void (^NewTableViewCellBlock)();
+
+@interface NewTableViewCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UIButton *BuyButton;
+@property (weak, nonatomic) IBOutlet UILabel *RateLabel;
+@property (weak, nonatomic) IBOutlet UILabel *DateLabel;
+@property (weak, nonatomic) IBOutlet UILabel *Tip1Label;
+@property (weak, nonatomic) IBOutlet UILabel *Tip2Label;
+
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *TopSpace;
+@property (weak, nonatomic) IBOutlet UIImageView *TypeImageView;
+@property (weak, nonatomic) IBOutlet UIImageView *LineImageView;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *viewBottomSpace;
+@property (weak, nonatomic) IBOutlet UIView *lineView;
+
+@property (nonatomic,copy)NewTableViewCellBlock   block;
+
+@property (nonatomic,retain)loanModel                   *model;
+@property (weak, nonatomic) IBOutlet UILabel *TitleLabel;
+@property (weak, nonatomic) IBOutlet UIProgressView *ProssView;
+@property (weak, nonatomic) IBOutlet UILabel *PersentLabel;
+
+
+@end

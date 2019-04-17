@@ -1,0 +1,62 @@
+//
+//  MSUScrollNotiView.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/11.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUScrollNotiView.h"
+#import "MSUPathTools.h"
+
+@interface MSUScrollNotiView ()<SDCycleScrollViewDelegate>
+
+@end
+
+@implementation MSUScrollNotiView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        
+        [self createView];
+        
+    }
+    return self;
+}
+
+
+- (void)createView{
+    UIImageView *imaView = [[UIImageView alloc] initWithFrame:CGRectMake(10, 9.5, 15, 15)];
+    imaView.image = [MSUPathTools showImageWithContentOfFileByName:@"gonggao"];
+    [self addSubview:imaView];
+    
+    self.scrollView = [SDCycleScrollView cycleScrollViewWithFrame:CGRectMake(10+15, 0,kDeviceWidth-44,34) imageNamesGroup:@[@"",@""]];
+    self.scrollView.autoScrollTimeInterval = 2.0;
+    _scrollView.showPageControl = NO;
+    _scrollView.onlyDisplayText = YES;
+    _scrollView.titlesGroup = @[@"快使用双截棍",@"哼哼哈兮",@"仁者无敌"];
+    _scrollView.scrollDirection = UICollectionViewScrollDirectionVertical;
+    _scrollView.titleLabelTextColor = TextOrangeColor;
+    _scrollView.titleLabelBackgroundColor = BGOrangeColor;
+    _scrollView.titleLabelTextFont = TEXTFONT(12);
+    self.scrollView.pageControlAliment = SDCycleScrollViewPageContolAlimentCenter;
+    [self addSubview:self.scrollView];
+    
+}
+
+- (void)setTextArr:(NSArray *)textArr{
+    _textArr = textArr;
+    NSMutableArray *titArr = [NSMutableArray array];
+    for (NSDictionary *dic in _textArr) {
+        NSString *nam = dic[@"username"];
+        NSString *nameStr = [nam stringByReplacingCharactersInRange:NSMakeRange(3, 4) withString:@"****"];
+        NSString *str = [NSString stringWithFormat:@"恭喜%@成功购买米粒宝%@元",nameStr,dic[@"investMoney"]];
+        [titArr addObject:str];
+    }
+    
+    _scrollView.titlesGroup = titArr;
+}
+
+
+@end

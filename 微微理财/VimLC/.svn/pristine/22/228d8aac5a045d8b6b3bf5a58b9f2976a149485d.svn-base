@@ -1,0 +1,28 @@
+//
+//  MSUCurrentController.h
+//  VimLC
+//
+//  Created by 007 on 2018/1/15.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "BaseViewController.h"
+
+@interface MSUCurrentController : BaseViewController
+
+@end
+
+
+//@interface MSUCurrentListModel : NSObject
+//
+//@property (nonatomic,strong) NSString *actualAmount;
+//@property (nonatomic,strong) NSString *amount;
+//@property (nonatomic,strong) NSString *createDate;
+//@property (nonatomic,strong) NSString *interest;
+//@property (nonatomic,strong) NSString *rate;
+
+
+//
+//@end
+

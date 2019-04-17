@@ -1,0 +1,101 @@
+//
+//  MSUTradeCompleteController.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/25.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUTradeCompleteController.h"
+#import "MSUTradeListController.h"
+#import "HomeViewController.h"
+
+#import "MSUPocketDetailController.h"
+
+#import "MSUPathTools.h"
+
+@interface MSUTradeCompleteController ()
+
+@end
+
+@implementation MSUTradeCompleteController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+    
+    self.title = @"投标";
+    self.view.backgroundColor = WhiteColor;
+    
+    UIImageView *imaView = [[UIImageView alloc] initWithFrame:CGRectMake(kDeviceWidth*0.5-66*kDeviceWidthScale, 40*kDeviceHeightScale, 132*kDeviceWidthScale, 112.5*kDeviceHeightScale)];
+    imaView.image = [MSUPathTools showImageWithContentOfFileByName:@"complete"];
+    [self.view addSubview:imaView];
+    
+    UILabel *attentionLab = [[UILabel alloc] init];
+    attentionLab.frame = CGRectMake(0, imaView.bottom, kDeviceWidth, 25*kDeviceHeightScale);
+    attentionLab.text = @"恭喜您完成投标";
+    attentionLab.font = [UIFont systemFontOfSize:18];
+    attentionLab.textAlignment = NSTextAlignmentCenter;
+    attentionLab.textColor = titBlackColor;
+    [self.view addSubview:attentionLab];
+
+    UIButton *completeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    completeBtn.frame = CGRectMake(22*kDeviceWidthScale, attentionLab.bottom + 45*kDeviceHeightScale, kDeviceWidth-44*kDeviceWidthScale, 44*kDeviceHeightScale);
+    completeBtn.backgroundColor = HEXCOLOR(0xfb6337);
+    completeBtn.layer.cornerRadius = 4;
+    completeBtn.clipsToBounds = YES;
+    completeBtn.layer.shouldRasterize = YES;
+    completeBtn.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [completeBtn setTitle:@"完成" forState:UIControlStateNormal];
+    [completeBtn setTitleColor:WhiteColor forState:UIControlStateNormal];
+    completeBtn.titleLabel.font = [UIFont systemFontOfSize:18];
+    [self.view addSubview:completeBtn];
+    [completeBtn addTarget:self action:@selector(completeBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIButton *adBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    adBtn.frame = CGRectMake(completeBtn.left, completeBtn.bottom + 20*kDeviceHeightScale, kDeviceWidth-44*kDeviceWidthScale, 71*kDeviceHeightScale);
+    [adBtn setImage:[MSUPathTools showImageWithContentOfFileByName:@"mlb_ggw"] forState:UIControlStateNormal];
+    adBtn.layer.cornerRadius = 4;
+    adBtn.clipsToBounds = YES;
+    adBtn.layer.shouldRasterize = YES;
+    adBtn.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [self.view addSubview:adBtn];
+    [adBtn addTarget:self action:@selector(adBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+}
+
+
+#pragma mark - 点击事件
+- (void)completeBtnClick:(UIButton *)sender{
+    for (UIViewController *controller in self.navigationController.viewControllers) {
+        if ([controller isKindOfClass:[MSUTradeListController class]] || [controller isKindOfClass:[HomeViewController class]]) {
+            [self.navigationController popToViewController:controller animated:YES];
+        } else{
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }
+}
+
+- (void)adBtnClick:(UIButton *)sender{
+    MSUPocketDetailController *pocket = [[MSUPocketDetailController alloc] init];
+    pocket.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:pocket animated:YES];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

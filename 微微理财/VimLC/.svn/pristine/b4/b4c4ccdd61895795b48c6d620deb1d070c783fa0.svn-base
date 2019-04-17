@@ -1,0 +1,115 @@
+//
+//  MSUHuoQiTableCell.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/11.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUHuoQiTableCell.h"
+
+#import "MSUStringTools.h"
+#import "MSUPathTools.h"
+
+#define SelfWidth self.frame.size.width
+
+
+@implementation MSUHuoQiTableCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier{
+    if (self = [super initWithStyle:style reuseIdentifier:reuseIdentifier]) {
+        [self createContentView];
+    }
+    return self;
+}
+
+- (void)createContentView{
+    UIView *bgView = [[UIView alloc] init];
+    bgView.frame = CGRectMake(10*kDeviceWidthScale, 0, kDeviceWidth-20*kDeviceWidthScale, 178*kDeviceHeightScale);
+    bgView.backgroundColor = WhiteColor;
+    bgView.layer.shouldRasterize = YES;
+    bgView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    bgView.layer.cornerRadius = 10;
+    bgView.clipsToBounds = YES;
+    [self addSubview:bgView];
+    
+    self.titLab = [[UILabel alloc] init];
+    _titLab.font = TEXTFONT(16);
+    _titLab.textColor = titBlackColor;
+    [bgView addSubview:_titLab];
+    
+    self.signImaView = [[UIImageView alloc] initWithFrame:CGRectMake(self.frame.size.width-26*kDeviceHeightScale, 0, 26*kDeviceWidthScale, 26*kDeviceHeightScale)];
+    [self addSubview:_signImaView];
+    
+    self.incomeLab = [[UILabel alloc] init];
+    _incomeLab.font = TEXTFONT(27);
+    _incomeLab.textColor = titOrangeColor;
+    [bgView addSubview:_incomeLab];
+    
+    self.introLab = [[UILabel alloc] init];
+    _introLab.font = TEXTFONT(16);
+    _introLab.textColor = titBlackColor;
+    [bgView addSubview:_introLab];
+    
+    self.yearIncomeLab = [[UILabel alloc] init];
+    _yearIncomeLab.font = TEXTFONT(13);
+    _yearIncomeLab.textColor = titLightColor;
+    [bgView addSubview:_yearIncomeLab];
+    
+    self.giveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    _giveBtn.frame = CGRectMake((kDeviceWidth-20*kDeviceWidthScale)*0.5-106*kDeviceWidthScale, 124*kDeviceHeightScale, 212*kDeviceWidthScale, 34*kDeviceHeightScale);
+    [MSUPathTools drawGradientColorFromColorA:HEXCOLOR(0xffaa67) toColorB:HEXCOLOR(0xff5c39) withView:_giveBtn isLeft:YES];
+    _giveBtn.layer.cornerRadius = 9;
+    _giveBtn.clipsToBounds = YES;
+    _giveBtn.layer.shouldRasterize = YES;
+    _giveBtn.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [_giveBtn setTitle:@"立即加入" forState:UIControlStateNormal];
+    [_giveBtn setTitleColor:WhiteColor forState:UIControlStateNormal];
+    _giveBtn.titleLabel.font = [UIFont systemFontOfSize:16];
+    [bgView addSubview:_giveBtn];
+    [_giveBtn addTarget:self action:@selector(giveBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+}
+
+- (void)setLoanModel:(loanModel *)loanModel{
+    _loanModel = loanModel;
+    
+    _titLab.text = loanModel.borrowTypeOther;
+    CGSize sizea = [MSUStringTools danamicGetWidthFromText:_titLab.text WithFont:16];
+    _titLab.frame = CGRectMake((kDeviceWidth-20*kDeviceWidthScale)*0.5-sizea.width*0.5, 9*kDeviceHeightScale, sizea.width, 16*kDeviceHeightScale);
+    
+    NSString *imaStr = _loanModel.rigntImage;
+    if (imaStr.length > 0) {
+        _signImaView.hidden = YES;
+    } else{
+        _signImaView.hidden = NO;
+        [_signImaView sd_setImageWithURL:[NSURL URLWithString:imaStr]];
+    }
+    
+    _incomeLab.text = _loanModel.rate;
+    CGSize sized = [MSUStringTools danamicGetWidthFromText:_incomeLab.text WithFont:27];
+    _incomeLab.frame = CGRectMake(17*kDeviceWidthScale, _titLab.bottom+16.5*kDeviceHeightScale, sized.width, 27*kDeviceHeightScale);
+
+    _introLab.text = _loanModel.currentTip2;
+    CGSize sizee = [MSUStringTools danamicGetWidthFromText:_introLab.text WithFont:16];
+    _introLab.frame = CGRectMake(196.5*kDeviceWidthScale, _titLab.bottom+33.5*kDeviceHeightScale, sizee.width, 16*kDeviceHeightScale);
+    
+    _yearIncomeLab.text = @"预期年化收益率";
+    CGSize sizef = [MSUStringTools danamicGetWidthFromText:_yearIncomeLab.text WithFont:13];
+    _yearIncomeLab.frame = CGRectMake(_incomeLab.left+1, _incomeLab.bottom+8*kDeviceHeightScale, sizef.width, 13*kDeviceHeightScale);
+
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+- (void)giveBtnClick:(UIButton *)sender{
+    if (self.giveBtnClick) {
+        self.giveBtnClick(sender);
+    }
+}
+
+
+@end

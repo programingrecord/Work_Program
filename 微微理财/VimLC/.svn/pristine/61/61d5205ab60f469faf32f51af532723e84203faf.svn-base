@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="BuyTradeResultViewController">
+            <connections>
+                <outlet property="TipLable" destination="FtL-vw-iuG" id="yLS-BJ-Ofy"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nGg-vf-KIn">
+                    <rect key="frame" x="0.0" y="0.0" width="375" height="225"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FtL-vw-iuG">
+                            <rect key="frame" x="0.0" y="182.5" width="375" height="20"/>
+                            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="20" id="VTc-ta-mDx"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                            <color key="textColor" red="0.40000000000000002" green="0.40000000000000002" blue="0.40000000000000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="TopUpSucess.png" translatesAutoresizingMaskIntoConstraints="NO" id="WEc-Dz-UoN">
+                            <rect key="frame" x="147" y="62.5" width="80" height="80"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="80" id="AUr-fH-WyH"/>
+                                <constraint firstAttribute="width" constant="80" id="HNJ-Fy-Irl"/>
+                            </constraints>
+                        </imageView>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstItem="FtL-vw-iuG" firstAttribute="leading" secondItem="nGg-vf-KIn" secondAttribute="leading" id="7wB-TU-FBx"/>
+                        <constraint firstAttribute="trailing" secondItem="FtL-vw-iuG" secondAttribute="trailing" id="Bl9-M6-6ur"/>
+                        <constraint firstItem="WEc-Dz-UoN" firstAttribute="centerY" secondItem="nGg-vf-KIn" secondAttribute="centerY" constant="-10" id="JV4-zw-psa"/>
+                        <constraint firstAttribute="width" secondItem="nGg-vf-KIn" secondAttribute="height" multiplier="5:3" id="bnI-4t-8nf"/>
+                        <constraint firstItem="FtL-vw-iuG" firstAttribute="top" secondItem="WEc-Dz-UoN" secondAttribute="bottom" constant="40" id="idY-R6-iF0"/>
+                        <constraint firstItem="WEc-Dz-UoN" firstAttribute="centerX" secondItem="nGg-vf-KIn" secondAttribute="centerX" id="vvk-U0-hRc"/>
+                    </constraints>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MVp-Ci-JCT">
+                    <rect key="frame" x="10" y="285" width="355" height="45"/>
+                    <color key="backgroundColor" red="0.98431372549999996" green="0.38823529410000002" blue="0.2156862745" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="45" id="CpD-Z1-Vyz"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                    <state key="normal" title="完 成">
+                        <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="completeButtonClick:" destination="-1" eventType="touchUpInside" id="fC4-PN-zam"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fOj-C5-LD8">
+                    <rect key="frame" x="10" y="350" width="355" height="45"/>
+                    <color key="backgroundColor" red="0.98431372549999996" green="0.38823529410000002" blue="0.2156862745" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="45" id="vFx-Kj-YVz"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                    <state key="normal" title="继续投资">
+                        <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="continueButtonClick:" destination="-1" eventType="touchUpInside" id="veK-NH-APz"/>
+                    </connections>
+                </button>
+            </subviews>
+            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="nGg-vf-KIn" secondAttribute="trailing" id="0CA-ER-Kgb"/>
+                <constraint firstAttribute="trailing" secondItem="MVp-Ci-JCT" secondAttribute="trailing" constant="10" id="BTd-LL-fue"/>
+                <constraint firstAttribute="trailing" secondItem="fOj-C5-LD8" secondAttribute="trailing" constant="10" id="F9w-vC-N9y"/>
+                <constraint firstItem="MVp-Ci-JCT" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="10" id="LWq-Jw-Seu"/>
+                <constraint firstItem="nGg-vf-KIn" firstAttribute="width" secondItem="nGg-vf-KIn" secondAttribute="height" multiplier="5:3" id="VXn-JO-Ie7"/>
+                <constraint firstItem="nGg-vf-KIn" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="WVu-uN-ivZ"/>
+                <constraint firstItem="fOj-C5-LD8" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="10" id="e6I-NR-PRn"/>
+                <constraint firstItem="nGg-vf-KIn" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="lR3-18-YzW"/>
+                <constraint firstItem="fOj-C5-LD8" firstAttribute="top" secondItem="MVp-Ci-JCT" secondAttribute="bottom" constant="20" id="u8y-RL-Iwp"/>
+                <constraint firstItem="MVp-Ci-JCT" firstAttribute="top" secondItem="nGg-vf-KIn" secondAttribute="bottom" constant="60" id="vbA-PZ-q8g"/>
+            </constraints>
+        </view>
+    </objects>
+    <resources>
+        <image name="TopUpSucess.png" width="100" height="100"/>
+    </resources>
+</document>

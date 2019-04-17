@@ -1,0 +1,80 @@
+//
+//  VimLL_common.h
+//  VimLC
+//
+//  Created by HM on 2017/7/25.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#ifndef VimLL_common_h
+#define VimLL_common_h
+
+#define ENVIRENTMENT 1              // 环境总开关 0:测试 1:生产
+
+
+#if ENVIRENTMENT==1
+    #define   VerifyImageUrl    @"http://www.vimzx.com/vcode_image.do?c="
+    #define   Base_url          @"http://www.vimzx.com/"
+    #define   login_url         @"http://www.vimzx.com/login.do"
+#else
+    #define   VerifyImageUrl     @"http://192.168.31.251:8080/vcode_image.do?c="
+    #define   Base_url           @"http://192.168.31.251:8080/"
+    #define   login_url          @"http://192.168.31.251:8080/login.do"
+#endif
+                                                                                                                     
+#ifdef DEBUG
+#define MyLog(...)  NSLog(__VA_ARGS__)
+#else
+#define MyLog(...)
+#endif
+#define kDeviceHeightScale [UIScreen mainScreen].bounds.size.height/667
+
+#define kDeviceWidth [UIScreen mainScreen].bounds.size.width
+#define kDeviceHeight [UIScreen mainScreen].bounds.size.height
+#define kTabBarHeight 49
+#define kStatusBarHeight 20
+#define kNavigationBarHeight 44
+
+#define kApplicationHeight    [[UIScreen mainScreen] applicationFrame].size.height//不包含状态bar的高度(e.g. 460)
+#define kContentHeight        (kApplicationHeight - kNavigationBarHeight)
+
+#define NUMBERS @”0123456789\n”
+//系统
+#define IOS7 ([[[UIDevice currentDevice] systemVersion]floatValue] >=7.0)
+#define IOS8 ([[[UIDevice currentDevice] systemVersion]floatValue] >=8.0)
+
+#define RGBA(r,g,b,a)               [UIColor colorWithRed:(float)r/255.0f green:(float)g/255.0f blue:(float)b/255.0f alpha:a]
+#define TEXTFONT(a) [UIFont systemFontOfSize:(float)a]
+
+
+
+
+#define IS_IPHONE (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+
+#define SCREEN_MAX_LENGTH (MAX(kDeviceWidth, kDeviceHeight))
+
+#define IS_IPHONE_5 (IS_IPHONE && SCREEN_MAX_LENGTH == 568.0)
+
+
+#ifndef kSystemVersion
+#define kSystemVersion [UIDevice systemVersion]
+#endif
+
+#ifndef kiOS6Later
+#define kiOS6Later (kSystemVersion >= 6)
+#endif
+
+#ifndef kiOS7Later
+#define kiOS7Later (kSystemVersion >= 7)
+#endif
+
+#ifndef kiOS8Later
+#define kiOS8Later (kSystemVersion >= 8)
+#endif
+
+#ifndef kiOS9Later
+#define kiOS9Later (kSystemVersion >= 9)
+#endif
+
+
+#endif /* VimLL_common_h */

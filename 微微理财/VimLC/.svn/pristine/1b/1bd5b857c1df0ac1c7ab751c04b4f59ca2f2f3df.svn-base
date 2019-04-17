@@ -1,0 +1,708 @@
+//
+//  CenterNewViewController.m
+//  SmallCat
+//
+//  Created by H on 2017/5/3.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "CenterNewViewController.h"
+#import "CenterCollectionViewCell.h"
+#import "LoginViewController.h"
+#import "CouponViewController.h"
+#import "CenterItemCell.h"
+
+#import "TopUpViewController.h"
+#import "WithdrawViewController.h"
+#import "PersonalInfoVC.h"
+
+
+#import "ReceiptListVC.h"
+#import "MyBidViewController.h"
+#import "AccountViewController.h"
+#import "CardViewController.h"
+#import "MangerViewController.h"
+#import "AddCardViewController.h"
+#import "LockNameViewController.h"
+#import "RealViewController.h"
+#import "TradeRecordViewController.h"
+#import "MSUTestCompleteController.h"
+
+#import "CurrentViewController.h"
+#import "UnderLineField.h"
+#import "CustomUIEdgeInsetLabel.h"
+#import "VimLL_common.h"
+
+#import "TradeListViewController.h"
+
+#import "MSUCurrentController.h"
+#import "MSUTestController.h"
+
+#import "MSUPathTools.h"
+
+@interface CenterNewViewController ()<UITableViewDelegate,UITableViewDataSource,UITextFieldDelegate>
+
+@property (nonatomic,strong) NSArray *DataArr;
+@property (nonatomic,strong) NSArray *ImageArr;
+@property (nonatomic,strong) NSArray *rightArr;
+
+@property (nonatomic,strong) UITableView *CenterTableView;
+
+@property (nonatomic,strong) UILabel *nameLable;
+@property (nonatomic,strong) UILabel *amountLable;
+@property (nonatomic,strong) UILabel *moneyLable;
+@property (nonatomic,strong) UILabel *TotolLable;
+
+@property (nonatomic,strong) NSMutableDictionary *userInfo;
+@property (nonatomic , assign) NSInteger testCode;
+
+
+@property (nonatomic,strong) CenterCollectionViewCell *SelectCell;
+@property (nonatomic,strong) CenterCollectionViewCell *SelectCell2;
+
+@end
+
+@implementation CenterNewViewController
+
+#pragma mark - 加载view
+- (void)viewWillAppear:(BOOL)animated{
+    self.tabBarController.tabBar.hidden = NO;
+    [self RequestUserInfo:NO islogin:NO];
+    [self.navigationController setNavigationBarHidden:YES animated:animated];
+
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self initTableview];
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewDidDisappear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:animated];
+
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+#pragma mark - TableView
+
+- (void)initTableview{
+    self.DataArr= @[@[@"资产详情",@"米粒宝"],@[@"回款查询",@"投资记录",@"交易记录"],@[@"我的银行卡",@"我的优惠劵"]];
+    self.ImageArr= @[@[@"icon_mybid",@"icon_current"],@[@"icon_backMoney",@"icon_Detail",@"icon_mybidList"],@[@"icon_Bank",@"icon_Coupon"]];
+    self.rightArr= @[@[@"已获得收益0.00元",@"已加入0元"],@[@"",@"",@""],@[@"",@""]];
+    
+    
+    self.CenterTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight-kTabBarHeight) style:UITableViewStyleGrouped];
+    self.CenterTableView.delegate = self;
+    self.CenterTableView.dataSource = self;
+    if (@available(iOS 11.0, *)) {
+        self.CenterTableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    }
+    [self.view addSubview:self.CenterTableView];
+    self.CenterTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    self.CenterTableView.tableHeaderView = [self headViewCreate];
+    __weak typeof(self) weakSelf = self;
+    self.CenterTableView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf RequestUserInfo:YES islogin:NO];
+        [strongSelf loadRequestWithAFN];
+    }];
+    if (iOS11) {
+        _CenterTableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    } else{
+        self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    NSArray *arr= [self.DataArr objectAtIndex:section];
+    return arr.count;
+
+}
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return self.DataArr.count;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    CenterItemCell * cell = [tableView dequeueReusableCellWithIdentifier:@"CenterItemCell"];
+    if (!cell)
+    {
+        [tableView registerNib:[UINib nibWithNibName:@"CenterItemCell" bundle:nil] forCellReuseIdentifier:@"CenterItemCell"];
+        cell = [tableView dequeueReusableCellWithIdentifier:@"CenterItemCell"];
+    }
+    
+    if (indexPath.row == 0) {
+        cell.TopLineview.hidden = NO;
+        
+    }else{
+        cell.TopLineview.hidden = YES;
+    }
+    
+    NSArray *TitleArr = [self.DataArr objectAtIndex:indexPath.section];
+    cell.leftTitle.text = [TitleArr objectAtIndex:indexPath.row];
+    if (indexPath.row == TitleArr.count-1) {
+        cell.BottomLineViewLeft.constant = 0;
+    }else{
+        cell.BottomLineViewLeft.constant = 40;
+    }
+    NSArray *ImageArr = [self.ImageArr objectAtIndex:indexPath.section];
+    cell.leftImage.image = [UIImage imageNamed:[ImageArr objectAtIndex:indexPath.row]];
+    
+    NSArray *RightTitleArr = [self.rightArr objectAtIndex:indexPath.section];
+    cell.rightTltle.text = [RightTitleArr objectAtIndex:indexPath.row];
+    return cell;
+}
+
+- (UIView *)headViewCreate{
+    
+    UIView *view = [[UIView alloc] init];
+    view.backgroundColor = [UIColor whiteColor];
+    
+    
+    UIView *purpleView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, 220)];
+    purpleView.backgroundColor = [UIColor colorWithHex:0xfb6337];
+    [view addSubview:purpleView];
+    
+    UIButton *testButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [testButton addTarget:self action:@selector(testButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    testButton.clipsToBounds = YES;
+    testButton.layer.cornerRadius = 11.5;
+    testButton.layer.shouldRasterize = YES;
+    testButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    //    [SetButton setImage:[UIImage imageNamed:@"set_icon"] forState:UIControlStateNormal];
+    //    SetButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [testButton setTitle:@"风险测评" forState:UIControlStateNormal];
+    [testButton setTitleColor:WhiteColor forState:UIControlStateNormal];
+    testButton.titleLabel.font = TEXTFONT(13);
+    testButton.frame = CGRectMake(14*kDeviceWidthScale, 30, 72, 23);
+    testButton.backgroundColor = HEXCOLOR(0xff987d);
+    [view addSubview:testButton];
+
+    
+    self.nameLable = [[UILabel alloc] initWithFrame:CGRectMake(0, 30,kDeviceWidth , 27)];
+    self.nameLable.font = TEXTFONT(18);
+    self.nameLable.text = @"--";
+    self.nameLable.textAlignment = NSTextAlignmentCenter;
+    self.nameLable.textColor = [UIColor whiteColor];
+    [purpleView addSubview:self.nameLable];
+    
+    UIImageView *imaView = [[UIImageView alloc] initWithFrame:CGRectMake(kDeviceWidth-54+10,36, 20, 20)];
+    imaView.image = [MSUPathTools showImageWithContentOfFileByName:@"set_icon"];
+    [view addSubview:imaView];
+    
+    UIButton *SetButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [SetButton addTarget:self action:@selector(SetButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+//    [SetButton setImage:[UIImage imageNamed:@"set_icon"] forState:UIControlStateNormal];
+//    SetButton.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    SetButton.frame = CGRectMake(kDeviceWidth-54,28, 54, 54);
+    SetButton.backgroundColor = [UIColor clearColor];
+    [view addSubview:SetButton];
+
+
+    
+    self.TotolLable = [[UILabel alloc] initWithFrame:CGRectMake(0, self.nameLable.bottom+20,kDeviceWidth , 43)];
+    self.TotolLable.font = TEXTFONT(36);
+    self.TotolLable.text = @"--";
+    self.TotolLable.textAlignment = NSTextAlignmentCenter;
+    self.TotolLable.textColor = [UIColor whiteColor];
+    [purpleView addSubview:self.TotolLable];
+    
+    
+    
+    
+    UILabel *Tip1 = [[UILabel alloc] initWithFrame:CGRectMake(0, self.TotolLable.bottom, kDeviceWidth, 20)];
+    Tip1.textAlignment = NSTextAlignmentCenter;
+    Tip1.font = TEXTFONT(14);
+    Tip1.text = @"总资产";
+    Tip1.textColor = [UIColor whiteColor];
+    [purpleView addSubview:Tip1];
+
+    
+    self.amountLable = [[UILabel alloc] initWithFrame:CGRectMake(0, Tip1.bottom+20,kDeviceWidth/2 , 20)];
+    self.amountLable.font = TEXTFONT(18);
+    self.amountLable.text = @"0.00";
+    self.amountLable.textAlignment = NSTextAlignmentCenter;
+    self.amountLable.textColor = [UIColor colorWithHex:0xFFFFFF alpha:0.6];
+    [purpleView addSubview:self.amountLable];
+    
+    
+    UILabel *Tip2 = [[UILabel alloc] initWithFrame:CGRectMake(0, self.amountLable.bottom , kDeviceWidth/2, 20)];
+    Tip2.font = TEXTFONT(14);
+    Tip2.text = @"可用余额";
+    Tip2.textAlignment = NSTextAlignmentCenter;
+
+    Tip2.textColor = [UIColor colorWithHex:0xFFFFFF alpha:0.6];
+    [purpleView addSubview:Tip2];
+    
+    
+    self.moneyLable = [[UILabel alloc] initWithFrame:CGRectMake(kDeviceWidth/2, Tip1.bottom+20,kDeviceWidth/2 , 20)];
+    self.moneyLable.font = TEXTFONT(18);
+    self.moneyLable.text = @"0.00";
+    self.moneyLable.textAlignment = NSTextAlignmentCenter;
+    self.moneyLable.textColor = [UIColor colorWithHex:0xFFFFFF alpha:0.6];
+    [purpleView addSubview:self.moneyLable];
+    
+    
+    UILabel *Tip3 = [[UILabel alloc] initWithFrame:CGRectMake(kDeviceWidth/2, self.moneyLable.bottom , kDeviceWidth/2, 20)];
+    Tip3.font = TEXTFONT(14);
+    Tip3.text = @"累计收益";
+    Tip3.textAlignment = NSTextAlignmentCenter;
+    Tip3.textColor = [UIColor colorWithHex:0xFFFFFF alpha:0.6];
+    [purpleView addSubview:Tip3];
+
+    UIButton *withdrawButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    withdrawButton.titleLabel.font = TEXTFONT(17);
+    [withdrawButton setTitleColor:[UIColor colorWithHex:0x4A4A4A] forState:UIControlStateNormal];
+    withdrawButton.backgroundColor = [UIColor clearColor];
+//        withdrawButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    [withdrawButton setTitle:@"提现" forState:UIControlStateNormal];
+    [withdrawButton addTarget:self action:@selector(WithdrawButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    withdrawButton.frame = CGRectMake(0,purpleView.bottom, kDeviceWidth/2, 50);
+    [view addSubview:withdrawButton];
+
+
+    UIButton *RechargeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    RechargeButton.titleLabel.font = TEXTFONT(17);
+    [RechargeButton setTitleColor:[UIColor colorWithHex:0xFF6339] forState:UIControlStateNormal];
+    RechargeButton.backgroundColor = [UIColor clearColor];
+    [RechargeButton setTitle:@"充值" forState:UIControlStateNormal];
+    [RechargeButton addTarget:self action:@selector(RechargeButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+    RechargeButton.frame = CGRectMake(kDeviceWidth/2,purpleView.bottom, kDeviceWidth/2, 50);
+    [view addSubview:RechargeButton];
+
+
+    UIView *lineView1 = [[UIView alloc] init];
+    lineView1.frame =CGRectMake(kDeviceWidth/2, purpleView.bottom, 0.5, 50);
+    lineView1.backgroundColor = [UIColor colorWithHex:0xDCDCDC];
+    [view addSubview:lineView1];
+
+
+
+    UIView *BottomlineView = [[UIView alloc] initWithFrame:CGRectMake(0, lineView1.bottom, kDeviceWidth, 15)];
+    BottomlineView.backgroundColor = [UIColor colorWithHex:0xF0F0F0];
+    [view addSubview:BottomlineView];
+    view.frame = CGRectMake(0, 0, kDeviceWidth, BottomlineView.bottom);
+    return view;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return 50;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    return 0.000001;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    return 15;
+}
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section{
+    UIView *V= [[UIView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, 20)];
+    V.backgroundColor = [UIColor colorWithHex:0xF0F0F0];
+    return V;
+}
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
+    UIView *V= [[UIView alloc] initWithFrame:CGRectZero];
+    return V;
+}
+
+
+
+#pragma mark - 请求
+- (void)RequestUserInfo:(BOOL)isRefresh islogin:(BOOL)islogin{
+    
+    self.userInfo = [[NSMutableDictionary alloc] init];
+
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppAccountServlet" parameters:nil result:^(id result) {
+        [self.CenterTableView.mj_header endRefreshing];
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& success==0)
+            {
+                [self requestLogin];
+            }else if([[result objectForKey:@"errorlog"]isEqualToString:@""]&& success==1)
+            {
+                self.userInfo=[[result objectForKey:@"items"]objectAtIndex:0];
+                
+                
+                [CoreArchive setDictionary:self.userInfo key:@"userInfoDetial"];
+                
+                int isLockedBank=[[self.userInfo objectForKey:@"isLockedBank"]intValue];
+
+                if (isLockedBank == 1) {
+                    [CoreArchive ishasLockedBank:YES];
+                }else{
+                    [CoreArchive ishasLockedBank:NO];
+                }
+                int isHasTradePassword=[[self.userInfo objectForKey:@"isHasTradePassword"]intValue];
+                
+                if (isHasTradePassword == 1) {
+                    [CoreArchive isSetTradePassWord:YES];
+                }else{
+                    [CoreArchive isSetTradePassWord:NO];
+                }
+                [self setPersonInfo];
+                
+                [self loadRequestWithAFN];
+
+            }else
+            {
+                [AddHudView addProgressView:self.view message:@"数据获取失败，请重新获取"];
+            }
+        }
+    }];
+}
+
+- (void)requestLogin{
+    
+    [[DataRequestServer getDataRequestServerData] requestLoginresult:^(NSString *LoginState) {
+        if ([LoginState isEqualToString:@"true"]) {
+            [self RequestUserInfo:YES islogin:YES];
+        }else{
+            [AddHudView addProgressView:self.view message:@"登录失效，请重新登录"];
+            
+            dispatch_time_t delayTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC));
+            dispatch_after(delayTime, dispatch_get_main_queue(), ^{
+                [CoreArchive removeNSUserDefaults];
+                LoginViewController *loginVc= [[LoginViewController alloc] init];
+                loginVc.loginType=logintypeHome;
+                loginVc.hidesBottomBarWhenPushed =  YES;
+                [self.navigationController pushViewController:loginVc animated:YES];
+            });
+        }
+    }];
+}
+- (void)setPersonInfo{
+    
+    self.nameLable.text = [self.userInfo objectForKey:@"username"];
+    self.amountLable.text = [self.userInfo objectForKey:@"availableAmount"];
+    self.TotolLable.text = [self.userInfo objectForKey:@"accountTotalAmount"];
+    self.moneyLable.text = [self.userInfo objectForKey:@"interestDone"];
+
+    
+    NSString *currentFundAmount = [NSString stringWithFormat:@"%@",[self.userInfo objectForKey:@"currentFundAmount"]];
+    
+    self.rightArr= @[@[[NSString stringWithFormat:@"已获得收益 %@ 元",[self.userInfo objectForKey:@"interestDone"]],[NSString stringWithFormat:@"已加入 %.2f 元",currentFundAmount.floatValue]],@[@"",@"",@""],@[@"",@""]];
+    [self.CenterTableView reloadData];
+    [[NSUserDefaults standardUserDefaults] setObject:self.userInfo forKey:@"userInfoDetial"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+}
+
+- (void)loadRequestWithAFN{
+    NSMutableDictionary *dic = [[NSMutableDictionary alloc] init];
+    [dic setObject:@"" forKey:@"risktype"];
+    
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppRiskServlet" parameters:dic result:^(id result) {
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& success==0)
+            {
+                [self requestLogin];
+                
+            }else if([[result objectForKey:@"errorlog"]isEqualToString:@""]&& success==1)
+            {
+                self.testCode = [result[@"risktype"] integerValue];
+                
+            }else
+            {
+                [AddHudView addProgressView:self.view message:@"数据获取失败，请重新获取"];
+            }
+        }
+    }];
+}
+
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    switch (indexPath.section) {
+        case 0:
+        {
+            switch (indexPath.row) {
+                case 0:
+                {
+                    AccountViewController *AccountVC = [[AccountViewController alloc] init];
+                    AccountVC.totalAmount = [[[self.userInfo objectForKey:@"accountTotalAmount"]stringByReplacingOccurrencesOfString:@"," withString:@""] floatValue];
+                    AccountVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:AccountVC animated:YES];
+                }
+                    break;
+                case 1:{
+//                    CurrentViewController *CurrentVC = [[CurrentViewController alloc] init];
+//                    CurrentVC.hidesBottomBarWhenPushed =  YES;
+//                    [self.navigationController pushViewController:CurrentVC animated:YES];
+                    MSUCurrentController *CurrentVC = [[MSUCurrentController alloc] init];
+                    CurrentVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:CurrentVC animated:YES];
+                }
+                    break;
+                default:
+                    break;
+            }
+        }
+            break;
+        case 1:
+        {
+            switch (indexPath.row) {
+                case 0:
+                {
+                    ReceiptListVC *ReceiptVC = [[ReceiptListVC alloc] init];
+                    ReceiptVC.receiptType = ReceiptTypeCollect;
+                    ReceiptVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:ReceiptVC animated:YES];
+                }
+                    break;
+                case 1:{
+                    MyBidViewController *MyBidVC = [[MyBidViewController alloc] init];
+                    MyBidVC.BidType = MybidTypeTypeAll;
+                    MyBidVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:MyBidVC animated:YES];
+
+                }
+                    break;
+                case 2:{
+                    TradeRecordViewController *tradeVC = [[TradeRecordViewController alloc] init];
+                    tradeVC.TrandeType = TrandeRecordTypeAll;
+                    tradeVC.TrandeFromType = TrandeRecordFromType_ALL;
+                    tradeVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:tradeVC animated:YES];
+                }
+                    break;
+                default:
+                    break;
+            }
+
+        }
+            break;
+        case 2:
+        {
+            switch (indexPath.row) {
+                case 0:
+                {
+                    CardViewController *cardVC = [[CardViewController alloc] init];
+                    cardVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:cardVC animated:YES];
+                }
+                    break;
+                case 1:
+                {
+                    CouponViewController *cardVC = [[CouponViewController alloc] init];
+                    cardVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:cardVC animated:YES];
+                }
+                    break;
+                default:
+                    break;
+            }
+
+        }
+            break;
+        case 3:
+        {
+            switch (indexPath.row) {
+                case 0:
+                {
+                    MangerViewController *MangerVC = [[MangerViewController alloc] init];
+                    MangerVC.hidesBottomBarWhenPushed =  YES;
+                    [self.navigationController pushViewController:MangerVC animated:YES];                }
+                    break;
+                
+                default:
+                    break;
+            }
+
+        }
+            break;
+
+            
+        default:
+            break;
+    }
+}
+#pragma mark - 点击事件
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    switch (indexPath.row) {
+        case 0:
+        {
+            MyBidViewController *MyBidVC = [[MyBidViewController alloc] init];
+            MyBidVC.BidType = MybidTypeTypeAll;
+            MyBidVC.hidesBottomBarWhenPushed =  YES;
+            [self.navigationController pushViewController:MyBidVC animated:YES];
+        }
+            break;
+        case 1:
+        {
+            CurrentViewController *CurrentVC = [[CurrentViewController alloc] init];
+            CurrentVC.hidesBottomBarWhenPushed =  YES;
+            [self.navigationController pushViewController:CurrentVC animated:YES];
+        }
+            break;
+
+        case 2:
+        {
+            ReceiptListVC *ReceiptVC = [[ReceiptListVC alloc] init];
+            ReceiptVC.receiptType = ReceiptTypeCollect;
+            ReceiptVC.hidesBottomBarWhenPushed =  YES;
+            [self.navigationController pushViewController:ReceiptVC animated:YES];        }
+            break;
+
+        case 3:
+        {
+            AccountViewController *AccountVC = [[AccountViewController alloc] init];
+            AccountVC.totalAmount = [[[self.userInfo objectForKey:@"accountTotalAmount"]stringByReplacingOccurrencesOfString:@"," withString:@""] floatValue];
+            AccountVC.hidesBottomBarWhenPushed =  YES;
+            [self.navigationController pushViewController:AccountVC animated:YES];
+        }
+            break;
+
+        case 4:
+        {
+            TradeRecordViewController *tradeVC = [[TradeRecordViewController alloc] init];
+            tradeVC.TrandeType = TrandeRecordTypeAll;
+            tradeVC.TrandeFromType = TrandeRecordFromType_ALL;
+
+            tradeVC.hidesBottomBarWhenPushed =  YES;
+            [self.navigationController pushViewController:tradeVC animated:YES];
+            
+        }
+            break;
+
+        case 5:
+        {
+//            int isLockedRealName=[[self.userInfo objectForKey:@"isLockedRealName"]intValue];
+//            
+//            if (isLockedRealName==0) {
+//                UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未绑定姓名，请前往绑定" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+//                alertView.tag=1001;
+//                [alertView show];
+//                return;
+//            }
+            
+//            int isIdentity=[[self.userInfo objectForKey:@"isIdentity"]intValue];
+//            if (isIdentity==0) {
+//                UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未进行实名认证，请前往认证" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+//                alertView.tag=1003;
+//                [alertView show];
+//                return;
+//            }
+            
+            CardViewController *cardVC = [[CardViewController alloc] init];
+            cardVC.hidesBottomBarWhenPushed =  YES;
+            [self.navigationController pushViewController:cardVC animated:YES];
+        }
+            break;
+
+        case 6:
+        {
+            MangerViewController *MangerVC = [[MangerViewController alloc] init];
+            MangerVC.hidesBottomBarWhenPushed =  YES;
+            [self.navigationController pushViewController:MangerVC animated:YES];
+        }
+            break;
+
+            
+        default:
+            break;
+    }
+}
+
+- (void)WithdrawButtonClick:(UIButton *)sender{
+ 
+
+    if (![CoreArchive isLockedBank]) {
+        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未添加银行卡，请前往添加" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        alertView.tag=1002;
+        [alertView show];
+        return;
+    }
+    
+    WithdrawViewController *WithDrawVC = [[WithdrawViewController alloc] init];
+    WithDrawVC.hidesBottomBarWhenPushed =  YES;
+    [self.navigationController pushViewController:WithDrawVC animated:YES];
+}
+- (void)RechargeButtonClick:(UIButton *)sender{
+
+    if (![CoreArchive isLockedBank]) {
+        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未添加银行卡，请前往添加" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        alertView.tag=1002;
+        [alertView show];
+        return;
+    }
+    TopUpViewController *TopUpVC = [[TopUpViewController alloc] init];
+    TopUpVC.hidesBottomBarWhenPushed =  YES;
+    [self.navigationController pushViewController:TopUpVC animated:YES];
+}
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    
+    if (buttonIndex==1) {
+        switch (alertView.tag) {
+            case 1001:
+            {
+                LockNameViewController *LockName =[[LockNameViewController alloc] init];
+                LockName.hidesBottomBarWhenPushed =  YES;
+                [self.navigationController pushViewController:LockName animated:YES];
+                break;
+
+            }
+            case 1002:
+            {
+                AddCardViewController *AddCardVC =[[AddCardViewController alloc] init];
+                AddCardVC.hidesBottomBarWhenPushed =  YES;
+                [self.navigationController pushViewController:AddCardVC animated:YES];
+                break;
+                
+            }
+            case 1003:
+            {
+                RealViewController *RealNameVC =[[RealViewController alloc] init];
+                RealNameVC.hidesBottomBarWhenPushed =  YES;
+                [self.navigationController pushViewController:RealNameVC animated:YES];
+                break;
+                
+            }
+                
+                
+            default:
+                break;
+        }
+        
+    }
+    
+
+}
+- (void)SetButtonClick:(UIButton *)sender{
+    MangerViewController *MangerVC = [[MangerViewController alloc] init];
+    MangerVC.hidesBottomBarWhenPushed =  YES;
+    [self.navigationController pushViewController:MangerVC animated:YES];
+}
+
+- (void)testButtonClick:(UIButton *)sender{
+    if (_testCode > 0) {
+        MSUTestCompleteController *com = [[MSUTestCompleteController alloc] init];
+        com.codeSign = _testCode;
+        com.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:com animated:YES];
+    } else{
+        MSUTestController *test = [[MSUTestController alloc] init];
+        test.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:test animated:YES];
+    }
+
+
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

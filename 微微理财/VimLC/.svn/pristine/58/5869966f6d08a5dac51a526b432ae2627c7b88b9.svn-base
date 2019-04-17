@@ -1,0 +1,77 @@
+//
+//  MSUWithDrawController.m
+//  VimLC
+//
+//  Created by 007 on 2018/3/19.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUWithDrawController.h"
+
+@interface MSUWithDrawController ()
+
+@property (nonatomic , strong) UIImageView *cardImaView;
+@property (nonatomic , strong) UILabel *cardName;
+@property (nonatomic , strong) UITextField *bankTF;
+@property (nonatomic , strong) UITextField *moneyTF;
+
+@end
+
+@implementation MSUWithDrawController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+    self.title = @"提现";
+    self.view.backgroundColor = HEXCOLOR(0xe4e4e4);
+ 
+    [self createView];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)createView{
+    UIView *bgView = [[UIView alloc] init];
+    bgView.frame = CGRectMake(0, 12, kDeviceWidth, 197);
+    bgView.backgroundColor = HEXCOLOR(0xffffff);
+    [self.view addSubview:bgView];
+    
+    self.cardImaView = [[UIImageView alloc] initWithFrame:CGRectMake(17, 12, 25, 25)];
+//    _cardImaView.image = [MSUPathTools showImageWithContentOfFileByName:@""];
+    [bgView addSubview:_cardImaView];
+    
+    self.cardName = [[UILabel alloc] init];
+    _cardName.frame = CGRectMake(53, 13.5, kDeviceWidth-53, 22.5);
+    _cardName.text = @"--";
+    _cardName.font = [UIFont systemFontOfSize:16];
+    _cardName.textColor = HEXCOLOR(0x454545);
+    [bgView addSubview:_cardName];
+    
+    UIView *lineView = [[UIView alloc] init];
+    lineView.frame = CGRectMake(0, 49, kDeviceWidth, 1);
+    lineView.backgroundColor = LineColor;
+    [bgView addSubview:lineView];
+    
+    UILabel *addressLab = [[UILabel alloc] init];
+    addressLab.frame = CGRectMake(17, 13, 40, 22.5);
+    addressLab.text = @"地区";
+    addressLab.font = [UIFont systemFontOfSize:16];
+    addressLab.textColor = HEXCOLOR(0x4a4a4a);
+    [bgView addSubview:addressLab];
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

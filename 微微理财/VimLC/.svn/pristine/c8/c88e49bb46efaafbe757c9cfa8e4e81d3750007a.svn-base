@@ -1,0 +1,103 @@
+//
+//  NewTableViewCell.m
+//  VimLC
+//
+//  Created by 慧明 on 2017/11/7.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "NewTableViewCell.h"
+
+@implementation NewTableViewCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    self.BuyButton.layer.borderColor = [UIColor colorWithHex:0xFF6339].CGColor;
+    self.BuyButton.layer.borderWidth = 0.8;
+    self.BuyButton.layer.cornerRadius = 2;
+    self.Tip1Label.layer.borderColor = [UIColor colorWithHex:0xB0B0B0].CGColor;
+    self.Tip1Label.layer.borderWidth = 0.5;
+    self.Tip1Label.layer.cornerRadius = 2;
+    self.Tip2Label.layer.borderColor = [UIColor colorWithHex:0xB0B0B0].CGColor;
+    self.Tip2Label.layer.borderWidth = 0.5;
+    self.Tip2Label.layer.cornerRadius = 2;
+
+    // Initialization code
+}
+- (void)setModel:(loanModel *)model{
+    if (_model != model) {
+        _model =model;
+    }
+//    self.RateLabel.text = _model.rate;
+    
+    NSString *rateString =[NSString stringWithFormat:@"%@%@",_model.rate,_model.rateIncrease];
+    NSRange range1= [rateString rangeOfString:_model.rate];
+    NSMutableAttributedString *rateAstring = [[NSMutableAttributedString alloc] initWithString:rateString];
+    [rateAstring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:NSMakeRange(0, rateString.length)];
+    [rateAstring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:24] range:NSMakeRange(0, range1.length-1)];
+    [rateAstring addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0xFF0000] range:range1];
+    self.RateLabel.attributedText = rateAstring;
+    self.Tip1Label.text = _model.currentTip1;
+    self.Tip2Label.text = _model.currentTip2;
+    self.TitleLabel.text = _model.title;
+    self.PersentLabel.text = [NSString stringWithFormat:@"%d%%",_model.completePercent.integerValue];
+    self.ProssView.progress = _model.completePercent.integerValue/100.00;
+    
+    NSString *dateString =[NSString stringWithFormat:@"期限%@",_model.timeCount];
+    NSMutableAttributedString *Astring1 = [[NSMutableAttributedString alloc] initWithString:dateString];
+    [Astring1 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:17] range:NSMakeRange(0, dateString.length)];
+    [Astring1 addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0xFF6339] range:NSMakeRange(0, dateString.length)];
+    [Astring1 addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0x4A4A4A] range:NSMakeRange(0, 2)];
+    
+    
+    self.DateLabel.attributedText = Astring1;
+    
+    if ([_model.borrowState isEqualToString:@"流标"]) {
+        _BuyButton.enabled = NO;
+        _BuyButton.layer.borderColor = [UIColor colorWithHex:0xB0B0B0].CGColor;
+        [_BuyButton setTitleColor:[UIColor colorWithHex:0xB0B0B0] forState:UIControlStateNormal];
+        [_BuyButton setTitle:@"流标" forState:UIControlStateNormal];
+        
+    }else if([_model.borrowState isEqualToString:@"招标中"]){
+        [_BuyButton setTitle:@"立即购买" forState:UIControlStateNormal];
+        _BuyButton.layer.borderColor = [UIColor colorWithHex:0xFF6339].CGColor;
+        [_BuyButton setTitleColor:[UIColor colorWithHex:0xFF6339] forState:UIControlStateNormal];
+        
+        _BuyButton.enabled = YES;
+        
+    }else if([_model.borrowState isEqualToString:@"已还清"]){
+        [_BuyButton setTitle:@"已还清" forState:UIControlStateNormal];
+        _BuyButton.layer.borderColor = [UIColor colorWithHex:0xB0B0B0].CGColor;
+        [_BuyButton setTitleColor:[UIColor colorWithHex:0xB0B0B0] forState:UIControlStateNormal];
+        _BuyButton.enabled = NO;
+        
+    }else if([_model.borrowState isEqualToString:@"逾期"]){
+        [_BuyButton setTitle:@"逾期" forState:UIControlStateNormal];
+        _BuyButton.layer.borderColor = [UIColor colorWithHex:0xB0B0B0].CGColor;
+        [_BuyButton setTitleColor:[UIColor colorWithHex:0xB0B0B0] forState:UIControlStateNormal];
+        _BuyButton.enabled = NO;
+    }else if([_model.borrowState isEqualToString:@"还款中"]){
+        [_BuyButton setTitle:@"还款中" forState:UIControlStateNormal];
+        _BuyButton.layer.borderColor = [UIColor colorWithHex:0xB0B0B0].CGColor;
+        [_BuyButton setTitleColor:[UIColor colorWithHex:0xB0B0B0] forState:UIControlStateNormal];
+        _BuyButton.enabled = NO;
+        
+    }else{
+        
+    }
+}
+
+- (IBAction)buttonClick:(id)sender {
+    
+    if (self.block) {
+        self.block();
+    }
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

@@ -1,0 +1,17 @@
+//
+//  LoanRepaymentPlanCell.h
+//  WTJR
+//
+//  Created by H on 16/6/11.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface LoanRepaymentPlanCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UILabel *Periodlabel;
+@property (weak, nonatomic) IBOutlet UILabel *PepaymentAcount;
+@property (weak, nonatomic) IBOutlet UILabel *RepaymentDate;
+@property (weak, nonatomic) IBOutlet UIView *BGview;
+
+@end

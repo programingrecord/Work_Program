@@ -1,0 +1,214 @@
+//
+//  MSUProgramDetailView.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/15.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUProgramDetailView.h"
+
+
+#import "MSUPathTools.h"
+#import "MSUStringTools.h"
+
+@implementation MSUProgramDetailView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        
+        self.cicleViewArr = [NSMutableArray array];
+        self.textArr = [NSMutableArray array];
+
+        [self createView];
+        
+    }
+    return self;
+}
+
+
+- (void)createView{
+    /// 项目介绍
+    UIView *orangeView = [[UIView alloc] init];
+    orangeView.frame = CGRectMake(0, 15.5*kDeviceHeightScale, 4*kDeviceWidthScale, 15*kDeviceHeightScale);
+    orangeView.backgroundColor = titOrangeColor;
+    [self addSubview:orangeView];
+    
+    UILabel *introLab = [[UILabel alloc] init];
+    introLab.frame = CGRectMake(orangeView.right + 16*kDeviceWidthScale, 12*kDeviceHeightScale, 64*kDeviceWidthScale, 22.5*kDeviceHeightScale);
+    introLab.text = @"项目介绍";
+    introLab.font = [UIFont systemFontOfSize:16];
+    introLab.textColor = titBlackColor;
+    [self addSubview:introLab];
+
+
+    self.introDetailLab = [[UILabel alloc] init];
+    _introDetailLab.frame = CGRectMake(16*kDeviceWidth, 49*kDeviceHeightScale, kDeviceWidth-32*kDeviceWidthScale, 88*kDeviceHeightScale);
+    _introDetailLab.font = [UIFont systemFontOfSize:14];
+    _introDetailLab.textColor = titBlackQianColor;
+    _introDetailLab.numberOfLines = 0;
+    [self addSubview:_introDetailLab];
+
+    self.lineView = [[UIView alloc] init];
+    _lineView.frame = CGRectMake(0, _introDetailLab.bottom, kDeviceWidth, 13*kDeviceHeightScale);
+    _lineView.backgroundColor = BGWhiteColor;
+    [self addSubview:_lineView];
+
+    
+    
+    /// 项目进度
+    self.progressView = [[UIView alloc] init];
+    _progressView.frame = CGRectMake(0, _lineView.bottom, kDeviceWidth, 32);
+    _progressView.backgroundColor = HEXCOLOR(0xffffff);
+    [self addSubview:_progressView];
+    
+    UIView *orangeView1 = [[UIView alloc] init];
+    orangeView1.frame = CGRectMake(0,15.5*kDeviceHeightScale, 4*kDeviceWidthScale, 15*kDeviceHeightScale);
+    orangeView1.backgroundColor = titOrangeColor;
+    [_progressView addSubview:orangeView1];
+
+    
+    UILabel *progressLab = [[UILabel alloc] init];
+    progressLab.frame = CGRectMake(orangeView1.right + 16*kDeviceWidthScale, 12*kDeviceHeightScale, 64*kDeviceWidthScale, 22.5*kDeviceHeightScale);
+    progressLab.text = @"项目进度";
+    progressLab.font = [UIFont systemFontOfSize:16];
+    progressLab.textColor = titBlackColor;
+    [_progressView addSubview:progressLab];
+
+    
+    NSArray *arr = @[@"今日投资",@"等待满标",@"次日计息",@"投资期满",@"到账余额"];
+    for (NSInteger i = 0; i < arr.count; i++) {
+        UILabel *menuLab = [[UILabel alloc] init];
+        menuLab.frame = CGRectMake(10.5*kDeviceWidthScale + (52.5+24)*kDeviceWidthScale*i, progressLab.bottom+ 19.5*kDeviceHeightScale, 52.5*kDeviceWidthScale, 18.5*kDeviceHeightScale);
+        menuLab.text = arr[i];
+        menuLab.font = [UIFont systemFontOfSize:13];
+        menuLab.textColor = titBlackQianColor;
+        [_progressView addSubview:menuLab];
+
+        
+        UIView *bgView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 9.5*kDeviceWidthScale, 9.5*kDeviceWidthScale)];
+        bgView.center = CGPointMake(menuLab.center.x, menuLab.bottom+8*kDeviceHeightScale);
+        bgView.clipsToBounds = YES;
+        bgView.layer.cornerRadius = 9.5*kDeviceWidthScale*0.5;
+        bgView.layer.shouldRasterize = YES;
+        bgView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        bgView.layer.borderColor = titOrangeColor.CGColor;
+        bgView.layer.borderWidth = 1;
+        [_progressView addSubview:bgView];
+        [self.cicleViewArr addObject:bgView];
+
+        
+        UIImageView *imaView = [[UIImageView alloc] initWithFrame:CGRectMake(bgView.right, bgView.top, 67*kDeviceWidthScale, 9.5*kDeviceWidthScale)];//
+        imaView.image = [MSUPathTools showImageWithContentOfFileByName:@"xmjd_icon"];
+        if (i == 4) {
+            imaView.image = nil;
+        }
+        [_progressView addSubview:imaView];
+        
+        UILabel *dateLab = [[UILabel alloc] init];
+        dateLab.frame = CGRectMake(8.5*kDeviceWidthScale + (56.5+20)*kDeviceWidthScale*i, bgView.bottom+ 8*kDeviceHeightScale, 56.5*kDeviceWidthScale, 16.5*kDeviceHeightScale);
+        dateLab.text = @"2017.11.24";
+        dateLab.font = [UIFont systemFontOfSize:12];
+        dateLab.textAlignment = NSTextAlignmentCenter;
+        dateLab.textColor = titLightColor;
+        [_progressView addSubview:dateLab];
+        if (i == 4) {
+            dateLab.text = @"申请提现";
+        }
+
+    }
+    
+    UILabel *yuLab = [[UILabel alloc] init];
+    yuLab.frame = CGRectMake(85*kDeviceWidthScale,progressLab.bottom + 80*kDeviceHeightScale, 56.5*kDeviceWidthScale, 16.5*kDeviceHeightScale);
+    yuLab.text = @"预计";
+    yuLab.font = [UIFont systemFontOfSize:12];
+    yuLab.textColor = titLightColor;
+    yuLab.textAlignment = NSTextAlignmentCenter;
+    [_progressView addSubview:yuLab];
+    
+    
+    UILabel *centerLab = [[UILabel alloc] init];
+    centerLab.frame = CGRectMake(kDeviceWidth*0.5-67*kDeviceWidthScale,yuLab.bottom + 10*kDeviceHeightScale, 134*kDeviceWidthScale, 16.5*kDeviceHeightScale);
+    centerLab.text = @"具体日期以实际日期为准";
+    centerLab.font = [UIFont systemFontOfSize:12];
+    centerLab.textColor = titLightColor;
+    centerLab.textAlignment = NSTextAlignmentCenter;
+    [_progressView addSubview:centerLab];
+    
+    UIView *rightlineView = [[UIView alloc] init];
+    rightlineView.frame = CGRectMake(centerLab.right, yuLab.bottom+18*kDeviceHeightScale, kDeviceWidth*0.5-77*kDeviceWidthScale, 1*kDeviceHeightScale);
+    rightlineView.backgroundColor = HEXCOLOR(0xe2e2e2);
+    [_progressView addSubview:rightlineView];
+
+    UIView *leftlineView = [[UIView alloc] init];
+    leftlineView.frame = CGRectMake(10*kDeviceWidthScale, yuLab.bottom+18*kDeviceHeightScale, kDeviceWidth*0.5-77*kDeviceWidthScale, 1*kDeviceHeightScale);
+    leftlineView.backgroundColor = HEXCOLOR(0xe2e2e2);
+    [_progressView addSubview:leftlineView];
+
+    self.lineView1 = [[UIView alloc] init];
+    _lineView1.frame = CGRectMake(0, _lineView.bottom + 169.5*kDeviceHeightScale, kDeviceWidth, 13*kDeviceHeightScale);
+    _lineView1.backgroundColor = BGWhiteColor;
+    [self addSubview:_lineView1];
+
+    
+    /// 借款描述
+    self.describeView = [[UIView alloc] init];
+    _describeView.frame = CGRectMake(0, _lineView1.bottom, kDeviceWidth, 32);
+    _describeView.backgroundColor = HEXCOLOR(0xffffff);
+    [self addSubview:_describeView];
+    
+    UIView *orange2View = [[UIView alloc] init];
+    orange2View.frame = CGRectMake(0, 15.5*kDeviceHeightScale, 4*kDeviceWidthScale, 15*kDeviceHeightScale);
+    orange2View.backgroundColor = titOrangeColor;
+    [_describeView addSubview:orange2View];
+
+    
+    UILabel *describeLab = [[UILabel alloc] init];
+    describeLab.frame = CGRectMake(orange2View.right + 16*kDeviceWidthScale,12*kDeviceHeightScale, 64*kDeviceWidthScale, 22.5*kDeviceHeightScale);
+    describeLab.text = @"借款描述";
+    describeLab.font = [UIFont systemFontOfSize:16];
+    describeLab.textColor = titBlackColor;
+    [_describeView addSubview:describeLab];
+
+    
+    self.describeDetailLab = [[UILabel alloc] init];
+    _describeDetailLab.frame = CGRectMake(16*kDeviceWidthScale, describeLab.bottom+12*kDeviceHeightScale, kDeviceWidth-32*kDeviceWidthScale, 88*kDeviceHeightScale);
+    _describeDetailLab.font = [UIFont systemFontOfSize:14];
+    _describeDetailLab.textColor = titBlackQianColor;
+    _describeDetailLab.numberOfLines = 0;
+    [_describeView addSubview:_describeDetailLab];
+    
+    self.describeDetailView = [[UIView alloc] init];
+    _describeDetailView.frame = CGRectMake(16*kDeviceWidthScale, _describeDetailLab.bottom+12.5*kDeviceHeightScale, kDeviceWidth, 65*kDeviceHeightScale);
+    _describeDetailView.backgroundColor = HEXCOLOR(0xffffff);
+    [_describeView addSubview:_describeDetailView];
+
+
+}
+
+- (void)setDataArr:(NSArray *)dataArr{
+    _dataArr = dataArr;
+    
+    _introDetailLab.text = _dataArr[0];
+    CGRect recta = [MSUStringTools danamicGetHeightFromText:_introDetailLab.text WithWidth:kDeviceWidth-32*kDeviceWidthScale font:14];
+    _introDetailLab.frame = CGRectMake(16*kDeviceWidthScale, 49*kDeviceHeightScale, kDeviceWidth-32*kDeviceWidthScale, recta.size.height);
+    [MSUStringTools changeLineSpaceForLabel:_introDetailLab WithSpace:5.0];
+
+    _lineView.frame = CGRectMake(0, _introDetailLab.bottom+8*kDeviceHeightScale, kDeviceWidth, 13*kDeviceHeightScale);
+    _progressView.frame = CGRectMake(0, _lineView.bottom, kDeviceWidth, 32);
+    _lineView1.frame = CGRectMake(0, _lineView.bottom + 148.5*kDeviceHeightScale, kDeviceWidth, 13*kDeviceHeightScale);
+    _describeView.frame = CGRectMake(0, _lineView1.bottom, kDeviceWidth, 32);
+
+
+    _describeDetailLab.text = _dataArr[1];
+    CGRect rectb = [MSUStringTools danamicGetHeightFromText:_describeDetailLab.text WithWidth:kDeviceWidth-32*kDeviceWidthScale font:14];
+    _describeDetailLab.frame = CGRectMake(16*kDeviceWidthScale,46.5*kDeviceHeightScale, kDeviceWidth-32*kDeviceWidthScale, rectb.size.height);
+    [MSUStringTools changeLineSpaceForLabel:_describeDetailLab WithSpace:5.0];
+
+//    _describeDetailIma sd_setImageWithURL:[NSURL URLWithString:<#(nonnull NSString *)#>]
+    _describeDetailView.frame = CGRectMake(16*kDeviceWidthScale, _describeDetailLab.bottom+12.5*kDeviceHeightScale, 130*kDeviceWidthScale, 65*kDeviceHeightScale);
+
+}
+
+@end

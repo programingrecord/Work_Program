@@ -1,0 +1,26 @@
+//
+//  CurrentViewController.h
+//  SmallCat
+//
+//  Created by H on 2017/5/25.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "BaseViewController.h"
+
+@interface CurrentViewController : BaseViewController
+
+@end
+
+
+@interface CurrentListModel : NSObject
+
+@property (nonatomic,strong) NSString *actualAmount;
+@property (nonatomic,strong) NSString *amount;
+@property (nonatomic,strong) NSString *createDate;
+@property (nonatomic,strong) NSString *interest;
+@property (nonatomic,strong) NSString *rate;
+
+
+
+@end

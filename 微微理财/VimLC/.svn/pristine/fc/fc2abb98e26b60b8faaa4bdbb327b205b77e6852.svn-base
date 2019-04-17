@@ -1,0 +1,23 @@
+//
+//  CenterCollectionViewCell.m
+//  SmallCat
+//
+//  Created by H on 2017/5/3.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "CenterCollectionViewCell.h"
+
+@implementation CenterCollectionViewCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+- (IBAction)ButtonClick:(id)sender {
+    if (self.block) {
+        self.block();
+    }
+}
+
+@end

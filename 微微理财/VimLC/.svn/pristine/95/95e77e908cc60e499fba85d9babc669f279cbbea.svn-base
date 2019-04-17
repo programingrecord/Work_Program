@@ -1,0 +1,91 @@
+//
+//  MSUQuestionView.m
+//  VimLC
+//
+//  Created by 007 on 2018/2/27.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUQuestionView.h"
+
+#import "MSUStringTools.h"
+
+@implementation MSUQuestionView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        
+        [self createView];
+        
+    }
+    return self;
+}
+
+
+- (void)createView{
+    UILabel *attentionLab = [[UILabel alloc] init];
+    attentionLab.backgroundColor = HEXCOLOR(0xffffff);
+    attentionLab.textColor = titBlackQianColor;
+    attentionLab.font = [UIFont systemFontOfSize:14];
+
+    NSString *totalStr = @"1、什么是票据宝？\n     票据宝是出借人通过出借票据组成的标的，待票据到期后，获得本金和收益的一款稳健收益型产品。票据宝的年利率从8.5-10.5%不等，借款期限一般在7天到3个月之间。\n\n 2、什么时候开始计算利息？\n     满标当天即开始起息。\n\n 3、出借票据宝后是否可以取消？\n     票据宝产品在成功投标后无法取消，因此请根据您的资金使用需求，选择合适期限的票据宝产品进行出借，目前我们有活期产品“米粒宝”，您也可以考虑参与。\n\n 4、票据宝标的未满，怎么办？\n     标的发布5天内如果没有标满将会提示投标失败，出借本金将返回至您的余额账户。目前票据宝标的发布，当天就能满，一般最晚第二天，请放心操作。\n\n 5、出借过程中满标了，怎么办？\n     当您进行出借提交时显示满标，该笔金额将退还至您的余额账户中，您可选择其他标的进行出借。\n\n 6、票据宝到期后，资金会回到哪里？\n     票据宝到期之后，本息将一次性自动返还到您账户可用余额账户中，您可以根据自己的需求进行再次出借或者提现操作。\n\n 7、票据宝到期提现需要多长时间？\n     票据宝项目到期后，您的出借款项和收益将可以在个人的账户上查收到，此后您可以选择提现到个人的银行卡账户。票据宝提现操作时间16:00之前当天到账，16:00之后操作提现t+1时间到账。";
+    attentionLab.attributedText = [self makeKeyWordAttributedWithSubText:@"1、什么是票据宝？" textA:@"2、什么时候开始计算利息？" textB:@"3、出借票据宝后是否可以取消？" textC:@"4、票据宝标的未满，怎么办？" textD:@"5、出借过程中满标了，怎么办？" textE:@"6、票据宝到期后，资金会回到哪里？" textF:@"7、票据宝到期提现需要多长时间？" inOrigiText:totalStr font:16 color:BlackColor];
+
+    [MSUStringTools changeLineSpaceForLabel:attentionLab WithSpace:5];
+
+    attentionLab.numberOfLines = 0;
+    CGRect recta = [MSUStringTools danamicGetHeightFromText:attentionLab.text WithWidth:kDeviceWidth-40 font:17];
+    attentionLab.frame = CGRectMake(20, 0, kDeviceWidth-40, recta.size.height);
+    [self addSubview:attentionLab];
+    
+    
+}
+
+/*  多个字符串修改颜色字体 */
+- (NSMutableAttributedString *)makeKeyWordAttributedWithSubText:(NSString *)subText textA:(NSString *)textA textB:(NSString *)textB textC:(NSString *)textC textD:(NSString *)textD textE:(NSString *)textE textF:(NSString *)textF inOrigiText:(NSString *)origiText font:(CGFloat)font color:(UIColor *)color{
+    if (subText.length > 0) {
+        // 获取关键字的位置
+        NSRange range = [origiText rangeOfString:subText];
+        NSRange range1 = [origiText rangeOfString:textA];
+        NSRange range2 = [origiText rangeOfString:textB];
+        NSRange range3 = [origiText rangeOfString:textC];
+        NSRange range4 = [origiText rangeOfString:textD];
+        NSRange range5 = [origiText rangeOfString:textE];
+        NSRange range6 = [origiText rangeOfString:textF];
+
+        
+        // 转换成可以操作的字符串类型.
+        NSMutableAttributedString *attribute = [[NSMutableAttributedString alloc] initWithString:origiText];
+        
+        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        [paragraphStyle setLineSpacing:2];
+        [attribute addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, [origiText length])];
+        
+        // 添加属性(粗体)
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range1];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range2];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range3];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range4];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range5];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range6];
+
+        // 关键字高亮
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range1];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range2];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range3];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range4];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range5];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range6];
+
+
+        
+        return attribute;
+    }
+    return [[NSMutableAttributedString alloc] initWithString:origiText];
+}
+
+
+@end

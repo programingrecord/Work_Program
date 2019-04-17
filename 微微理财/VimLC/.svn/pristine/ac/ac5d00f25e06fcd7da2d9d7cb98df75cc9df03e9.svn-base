@@ -1,0 +1,36 @@
+//
+//  HomeNewTableViewCell.h
+//  VimLC
+//
+//  Created by 慧明 on 2017/11/6.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "loanModel.h"
+#import "HYCircleProgressView.h"
+
+typedef void (^TableButtonBlock)();
+
+@interface HomeNewTableViewCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UIButton *LoanButton;
+@property (weak, nonatomic) IBOutlet UILabel *TitleLabel;
+@property (weak, nonatomic) IBOutlet UIImageView *ImageTip;
+@property (weak, nonatomic) IBOutlet UIImageView *BGView;
+@property (weak, nonatomic) IBOutlet UIImageView *TitleLeftImage;
+@property (weak, nonatomic) IBOutlet UIImageView *TitleRightImage;
+
+@property (nonatomic,strong)loanModel                   *model;
+
+@property (strong, nonatomic) HYCircleProgressView *HYView;
+
+@property (weak, nonatomic) IBOutlet UILabel *MLBRateLabel;
+@property (weak, nonatomic) IBOutlet UILabel *MLBTipLabel;
+@property (weak, nonatomic) IBOutlet UILabel *Tip1Label;
+@property (weak, nonatomic) IBOutlet UILabel *Tip2Label;
+@property (weak, nonatomic) IBOutlet UILabel *Tip3Label;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *ButtonSpace;
+
+@property (nonatomic,copy)TableButtonBlock                   block;
+
+@end

@@ -1,0 +1,79 @@
+//
+//  MSUQuestionView.m
+//  VimLC
+//
+//  Created by 007 on 2018/2/27.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUQuestionView.h"
+
+#import "MSUStringTools.h"
+
+@implementation MSUQuestionView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        
+        [self createView];
+        
+    }
+    return self;
+}
+
+
+- (void)createView{
+    self.questionLab = [[UILabel alloc] init];
+    _questionLab.backgroundColor = HEXCOLOR(0xffffff);
+    _questionLab.textColor = titBlackQianColor;
+    _questionLab.font = [UIFont systemFontOfSize:14];
+    _questionLab.numberOfLines = 0;
+
+    [self addSubview:_questionLab];
+}
+
+/*  多个字符串修改颜色字体 */
+- (NSMutableAttributedString *)makeKeyWordAttributedWithSubText:(NSString *)subText textA:(NSString *)textA textB:(NSString *)textB textC:(NSString *)textC textD:(NSString *)textD textE:(NSString *)textE textF:(NSString *)textF inOrigiText:(NSString *)origiText font:(CGFloat)font color:(UIColor *)color{
+    if (subText.length > 0) {
+        // 获取关键字的位置
+        NSRange range = [origiText rangeOfString:subText];
+        NSRange range1 = [origiText rangeOfString:textA];
+        NSRange range2 = [origiText rangeOfString:textB];
+        NSRange range3 = [origiText rangeOfString:textC];
+        NSRange range4 = [origiText rangeOfString:textD];
+        NSRange range5 = [origiText rangeOfString:textE];
+        NSRange range6 = [origiText rangeOfString:textF];
+        
+        // 转换成可以操作的字符串类型.
+        NSMutableAttributedString *attribute = [[NSMutableAttributedString alloc] initWithString:origiText];
+        
+        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        [paragraphStyle setLineSpacing:2];
+        [attribute addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, [origiText length])];
+        
+        // 添加属性(粗体)
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range1];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range2];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range3];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range4];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range5];
+        [attribute addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:range6];
+
+        // 关键字高亮
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range1];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range2];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range3];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range4];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range5];
+        [attribute addAttribute:NSForegroundColorAttributeName value:color range:range6];
+
+        return attribute;
+    }
+    return [[NSMutableAttributedString alloc] initWithString:origiText];
+}
+
+
+@end

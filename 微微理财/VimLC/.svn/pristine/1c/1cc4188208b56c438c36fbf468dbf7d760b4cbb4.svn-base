@@ -1,0 +1,219 @@
+//
+//  PocketDetailViewController.m
+//  SmallCat
+//
+//  Created by H on 2017/6/5.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "PocketDetailViewController.h"
+#import "LoginViewController.h"
+#import "PocketBuyViewController.h"
+
+@interface PocketDetailViewController ()<UIScrollViewDelegate,DZNEmptyDataSetSource,DZNEmptyDataSetDelegate>
+@property (weak, nonatomic) IBOutlet UILabel *TitleLable;
+@property (weak, nonatomic) IBOutlet UILabel *RateLable;
+@property (weak, nonatomic) IBOutlet UILabel *minAmountLable;
+@property (weak, nonatomic) IBOutlet UILabel *TipLable;
+
+@property (weak, nonatomic) IBOutlet UILabel *TermLable;
+
+@property (weak, nonatomic) IBOutlet UILabel *ItemLable;
+@property (weak, nonatomic) IBOutlet UILabel *DescribeLable;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *DescribHeight;
+@property (weak, nonatomic) IBOutlet UILabel *minAmountLable2;
+@property (weak, nonatomic) IBOutlet UILabel *TimeLimitLable;
+@property (weak, nonatomic) IBOutlet UILabel *IncomeModeLable;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *IncomeModeHeight;
+@property (weak, nonatomic) IBOutlet UILabel *OutAmountLable;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *OutHeight;
+@property (weak, nonatomic) IBOutlet UILabel *FeeExplainLable;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *ViewHeight;
+
+@property (weak, nonatomic) IBOutlet UILabel *TipLable2;
+
+@property (weak, nonatomic) IBOutlet UIScrollView *BackScrollView;
+
+
+@property (weak, nonatomic) IBOutlet UILabel *Tip1Label;
+@property (weak, nonatomic) IBOutlet UILabel *Tip2Lable;
+@property (weak, nonatomic) IBOutlet UILabel *Tip3Label;
+
+
+
+@end
+
+@implementation PocketDetailViewController
+
+- (void)viewWillAppear:(BOOL)animated{
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self createUI];
+    [self.BackScrollView.mj_header beginRefreshing];
+
+}
+- (void)createUI{
+    self.title = @"米粒宝";
+//    _TitleLable.layer.cornerRadius = 12;
+    _Tip1Label.layer.borderColor = [UIColor colorWithHex:0xFF8561].CGColor;
+    _Tip1Label.layer.borderWidth = 1;
+    
+    _Tip2Lable.layer.borderColor = [UIColor colorWithHex:0xFF8561].CGColor;
+    _Tip2Lable.layer.borderWidth = 1;
+    
+    
+    _Tip3Label.layer.borderColor = [UIColor colorWithHex:0xFF8561].CGColor;
+    _Tip3Label.layer.borderWidth = 1;
+    
+    
+    __weak typeof(self) weakSelf= self;
+
+    _BackScrollView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        [weakSelf PocketDetailData:YES];
+    }];
+}
+     
+-(void)PocketDetailData:(BOOL)isRefresh{
+     
+     [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppCurrentBorrowServlet" parameters:nil result:^(id result) {
+         if (isRefresh) {
+             [self.BackScrollView.mj_header endRefreshing];
+         }
+         [MBProgressHUD hideHUDForView:self.view animated:YES];
+         if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+             [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+         }else{
+             int success = [[result objectForKey:@"success"]intValue];
+             
+             if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& success==1)
+             {
+                 NSArray *arr = [result objectForKey:@"items"];
+                 NSMutableDictionary *dics = [arr objectAtIndex:0];
+                 [self setUIWithDic:dics];
+                 
+             }else{
+                 [AddHudView addProgressView:self.view message:@"获取数据失败，请重新获取"];
+             }
+         }
+     }];
+
+ }
+- (void)setUIWithDic:(NSDictionary *)DetailDic{
+    
+//    self.TitleRight.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"interestCalculationType"]];
+    self.TipLable2.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"describe"]];
+
+    self.TitleLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"title"]];
+    self.ItemLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"title"]];
+    self.TipLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"interestCalculationType"]];
+    self.RateLable.text = [NSString stringWithFormat:@"%@~%@",[DetailDic objectForKey:@"minRate"],[DetailDic objectForKey:@"maxRate"]];
+    self.minAmountLable.text = [NSString stringWithFormat:@"%@元",[DetailDic objectForKey:@"midBidAmount"]];
+    self.minAmountLable2.text = [NSString stringWithFormat:@"%@元起投",[DetailDic objectForKey:@"midBidAmount"]];
+    
+    self.Tip1Label.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"currentTip1"]];
+    self.Tip2Lable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"currentTip2"]];
+    self.Tip3Label.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"currentTip3"]];
+
+    
+    self.TermLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"term"]];
+    
+    
+    NSDictionary *dict = @{NSFontAttributeName:TEXTFONT(13)};
+    
+    self.DescribeLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"briefing"]];
+    
+    CGRect DescribeLableRect = [self.DescribeLable.text boundingRectWithSize:CGSizeMake(kDeviceWidth-60, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil];
+    self.DescribHeight.constant = DescribeLableRect.size.height;
+    
+
+    self.TimeLimitLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"timeCount"]];
+    
+    self.IncomeModeLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"incomeMode"]];
+    
+    CGRect IncomeModeRect = [self.IncomeModeLable.text boundingRectWithSize:CGSizeMake(kDeviceWidth-60, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil];
+    self.IncomeModeHeight.constant = IncomeModeRect.size.height+5;
+
+    
+    
+    self.OutAmountLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"outAmountInfo"]];
+    
+    CGRect OutAmountRect = [self.OutAmountLable.text boundingRectWithSize:CGSizeMake(kDeviceWidth-60, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil];
+    self.OutHeight.constant = OutAmountRect.size.height;
+
+    
+    
+    self.FeeExplainLable.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"feeExplain"]];
+
+    self.ViewHeight.constant = self.FeeExplainLable.bottom +60;
+}
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
+{
+    return [UIImage imageNamed:@"Date_Empty"];
+}
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    
+    text = @"获取数据失败，点击重新加载";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.BackScrollView.mj_header beginRefreshing];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+- (IBAction)ButtonClick:(id)sender {
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *dic = [userDefaults objectForKey:@"registerData"];
+    if ([dic objectForKey:@"UserName"] && [dic objectForKey:@"PassWord"]) {
+        PocketBuyViewController *BuyVC = [[PocketBuyViewController alloc] init];
+//        BuyVC.bird = _Loanmodel.lunaP2pBorrowId;
+        [self.navigationController pushViewController:BuyVC animated:YES];
+    }else{
+        [CoreArchive removeNSUserDefaults];
+        LoginViewController *loginView = [[LoginViewController alloc] init];
+        loginView.loginType = logintypeHome;
+        loginView.hidesBottomBarWhenPushed = YES;
+
+        [self.navigationController pushViewController:loginView animated:YES];
+    }
+
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

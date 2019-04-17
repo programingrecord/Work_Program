@@ -1,0 +1,228 @@
+//
+//  PocketDetailNewViewController.m
+//  VimLC
+//
+//  Created by HM on 2017/10/13.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "PocketDetailNewViewController.h"
+#import "PocketBuyViewController.h"
+#import "LoginViewController.h"
+
+@interface PocketDetailNewViewController ()<UIScrollViewDelegate,DZNEmptyDataSetSource,DZNEmptyDataSetDelegate>
+
+@property (weak, nonatomic) IBOutlet UIScrollView *BackScrollView;
+@property (weak, nonatomic) IBOutlet UILabel *RateLable;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *ViewHeight;
+
+@property (weak, nonatomic) IBOutlet UILabel *YearTipLabel;
+@property (weak, nonatomic) IBOutlet UILabel *currentTip1;
+@property (weak, nonatomic) IBOutlet UILabel *currentTip2;
+@property (weak, nonatomic) IBOutlet UILabel *currentTip3;
+@property (weak, nonatomic) IBOutlet UILabel *currentTip4;
+@property (weak, nonatomic) IBOutlet UILabel *MinAmountLabel;
+@property (weak, nonatomic) IBOutlet UILabel *RuleTipLabel;
+@property (weak, nonatomic) IBOutlet UILabel *WithDrawLabel;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *WithDrawHeight;
+
+@property (weak, nonatomic) IBOutlet UILabel *BriefingLabel;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *BriefingHeight;
+
+@property (weak, nonatomic) IBOutlet UILabel *enterpriseLabel;
+@property (weak, nonatomic) IBOutlet UILabel *purposeLabel;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *purposeHeight;
+
+@property (weak, nonatomic) IBOutlet UILabel *measuresLabel;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *measuresHeight;
+
+
+@end
+
+@implementation PocketDetailNewViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self createUI];
+    [self.BackScrollView.mj_header beginRefreshing];
+
+}
+- (void)createUI{
+    self.title = @"米粒宝";
+    self.YearTipLabel.layer.borderWidth = 1;
+    self.YearTipLabel.layer.borderColor = [UIColor colorWithHex:0xFB6337].CGColor;
+    self.YearTipLabel.layer.cornerRadius =11;
+    
+    
+    self.currentTip1.layer.borderWidth = 1;
+    self.currentTip1.layer.borderColor = [UIColor colorWithHex:0xF0F0F0].CGColor;
+    self.currentTip1.layer.cornerRadius =11;
+    
+    self.currentTip2.layer.borderWidth = 1;
+    self.currentTip2.layer.borderColor = [UIColor colorWithHex:0xF0F0F0].CGColor;
+    self.currentTip2.layer.cornerRadius =11;
+    
+    self.currentTip3.layer.borderWidth = 1;
+    self.currentTip3.layer.borderColor = [UIColor colorWithHex:0xF0F0F0].CGColor;
+    self.currentTip3.layer.cornerRadius =11;
+    
+    
+    self.currentTip4.layer.borderWidth = 1;
+    self.currentTip4.layer.borderColor = [UIColor colorWithHex:0xF0F0F0].CGColor;
+    self.currentTip4.layer.cornerRadius =11;
+    __weak typeof(self) weakSelf= self;
+    
+    _BackScrollView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        [weakSelf PocketDetailData:YES];
+    }];
+}
+
+
+-(void)PocketDetailData:(BOOL)isRefresh{
+    
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppCurrentBorrowServlet" parameters:nil result:^(id result) {
+        if (isRefresh) {
+            [self.BackScrollView.mj_header endRefreshing];
+        }
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& success==1)
+            {
+                NSArray *arr = [result objectForKey:@"items"];
+                NSMutableDictionary *dics = [arr objectAtIndex:0];
+                [self setUIWithDic:dics];
+                
+            }else{
+                [AddHudView addProgressView:self.view message:@"获取数据失败，请重新获取"];
+            }
+        }
+    }];
+    
+}
+- (void)setUIWithDic:(NSDictionary *)DetailDic{
+    self.currentTip1.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"currentTip1"]];
+    self.currentTip2.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"currentTip2"]];
+    self.currentTip3.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"currentTip3"]];
+    self.currentTip4.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"currentTip4"]];
+    
+//    NSString *string1 = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"minRate"]];
+//    NSString *string2 = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"rewardRate"]];
+//    NSString *rateString;
+//
+//    if (string2 && string2.length>0) {
+//        rateString =[NSString stringWithFormat:@"%@ + %@",string1,string2];
+//    }else{
+//        rateString =[NSString stringWithFormat:@"%@",string1];
+//    }
+//    NSRange range1= [rateString rangeOfString:string1];
+//    NSMutableAttributedString *Astring1 = [[NSMutableAttributedString alloc] initWithString:rateString];
+//    [Astring1 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:24.0] range:NSMakeRange(0, rateString.length)];
+//    [Astring1 addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:48.0] range:NSMakeRange(0, range1.length-1)];
+//    [Astring1 addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0xFB6337] range:NSMakeRange(0, rateString.length)];
+//    self.RateLable.attributedText = Astring1;
+    
+    self.RateLable.text =[NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"maxRate"]];
+    self.MinAmountLabel.text = [NSString stringWithFormat:@"%@起购",[DetailDic objectForKey:@"midBidAmount"]];
+    self.RuleTipLabel.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"profitRule"]];
+    self.WithDrawLabel.text =[NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"withdrawals"]];
+    NSDictionary *dict = @{NSFontAttributeName:TEXTFONT(14)};
+    CGRect WithDrawHeightRect = [self.WithDrawLabel.text boundingRectWithSize:CGSizeMake(kDeviceWidth-110, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil];
+    self.WithDrawHeight.constant = WithDrawHeightRect.size.height>35?(WithDrawHeightRect.size.height+5):35;
+
+    
+    self.BriefingLabel.text =[NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"briefing"]];
+    CGRect briefingRect = [self.WithDrawLabel.text boundingRectWithSize:CGSizeMake(kDeviceWidth-110, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil];
+    self.BriefingHeight.constant = briefingRect.size.height>35?(briefingRect.size.height+5):35;
+
+    
+    self.enterpriseLabel.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"enterprise"]];
+    self.purposeLabel.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"purpose"]];
+    
+    CGRect purposeRect = [self.purposeLabel.text boundingRectWithSize:CGSizeMake(kDeviceWidth-110, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil];
+    
+    self.purposeHeight.constant = purposeRect.size.height>35?(purposeRect.size.height+5):35;
+    
+
+    self.measuresLabel.text = [NSString stringWithFormat:@"%@",[DetailDic objectForKey:@"measures"]];
+    CGRect measuresRect = [self.measuresLabel.text boundingRectWithSize:CGSizeMake(kDeviceWidth-110, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:dict context:nil];
+    
+    self.measuresHeight.constant = measuresRect.size.height>35?(measuresRect.size.height+5):35;
+    
+    self.ViewHeight.constant = self.measuresLabel.bottom + self.measuresHeight.constant + self.purposeHeight.constant +self.BriefingHeight.constant + self.WithDrawHeight.constant - 4*35 +20;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
+{
+    return [UIImage imageNamed:@"Date_Empty"];
+}
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    
+    text = @"获取数据失败，点击重新加载";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.BackScrollView.mj_header beginRefreshing];
+}
+- (IBAction)ButtonClick:(id)sender {
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *dic = [userDefaults objectForKey:@"registerData"];
+    if ([dic objectForKey:@"UserName"] && [dic objectForKey:@"PassWord"]) {
+        PocketBuyViewController *BuyVC = [[PocketBuyViewController alloc] init];
+        BuyVC.rate = self.RateLable.text;
+        [self.navigationController pushViewController:BuyVC animated:YES];
+    }else{
+        [CoreArchive removeNSUserDefaults];
+        LoginViewController *loginView = [[LoginViewController alloc] init];
+        loginView.loginType = logintypeHome;
+        loginView.hidesBottomBarWhenPushed = YES;
+
+        [self.navigationController pushViewController:loginView animated:YES];
+    }
+    
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

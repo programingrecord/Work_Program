@@ -1,0 +1,19 @@
+//
+//  CurrentListCell.h
+//  SmallCat
+//
+//  Created by H on 2017/6/5.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "CurrentViewController.h"
+@interface CurrentListCell : UITableViewCell
+
+@property (nonatomic,strong) CurrentListModel *model;
+@property (weak, nonatomic) IBOutlet UILabel *AmountLable;
+@property (weak, nonatomic) IBOutlet UILabel *RealLable;
+@property (weak, nonatomic) IBOutlet UILabel *DataLable;
+@property (weak, nonatomic) IBOutlet UILabel *GetAmountLable;
+
+@end

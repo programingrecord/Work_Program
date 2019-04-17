@@ -1,0 +1,13 @@
+//
+//  BuyTradeResultViewController.h
+//  SmallCat
+//
+//  Created by HMH on 2017/7/4.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "BaseViewController.h"
+
+@interface BuyTradeResultViewController : BaseViewController
+
+@end

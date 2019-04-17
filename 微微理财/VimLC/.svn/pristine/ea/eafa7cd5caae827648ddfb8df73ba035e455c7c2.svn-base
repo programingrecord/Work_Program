@@ -1,0 +1,26 @@
+//
+//  CenterCollectionViewCell.h
+//  SmallCat
+//
+//  Created by H on 2017/5/3.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+
+typedef void (^CenterCollectionViewCellBlock)();
+
+
+@interface CenterCollectionViewCell : UICollectionViewCell
+@property (weak, nonatomic) IBOutlet UIImageView *LeftImageView;
+@property (weak, nonatomic) IBOutlet UILabel *LeftTitleLable;
+@property (weak, nonatomic) IBOutlet UILabel *GetAmountLable;
+@property (weak, nonatomic) IBOutlet UIButton *ToLicaiList;
+
+@property (nonatomic,copy)CenterCollectionViewCellBlock                   block;
+
+@property (weak, nonatomic) IBOutlet UIImageView *ArrowImage;
+
+@end
+

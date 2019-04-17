@@ -1,0 +1,22 @@
+//
+//  TradeListViewController.h
+//  WTJR
+//
+//  Created by HM on 16/5/30.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "BaseViewController.h"
+
+
+typedef NS_ENUM(NSUInteger, TradeListType) {
+    TradeListTypeHome = 0,                         // no button type
+    TradeListTypeOther,
+};
+
+
+@interface TradeListViewController : BaseViewController
+
+@property (nonatomic,assign) TradeListType TradeType;
+
+@end

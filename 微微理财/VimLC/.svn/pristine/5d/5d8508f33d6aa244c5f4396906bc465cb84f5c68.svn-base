@@ -1,0 +1,13 @@
+//
+//  PocketDetailViewController.h
+//  SmallCat
+//
+//  Created by H on 2017/6/5.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "BaseViewController.h"
+
+@interface PocketDetailViewController : BaseViewController
+
+@end

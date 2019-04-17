@@ -1,0 +1,141 @@
+//
+//  BankLimitViewController.m
+//  VimLC
+//
+//  Created by 慧明 on 2017/10/31.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "BankLimitViewController.h"
+#import "BankLimitTableViewCell.h"
+#import "BankLimitModel.h"
+
+@interface BankLimitViewController ()<UITableViewDelegate,UITableViewDataSource,DZNEmptyDataSetSource,DZNEmptyDataSetDelegate>
+
+@property (weak, nonatomic) IBOutlet UITableView *TableView;
+@property (strong, nonatomic)  NSMutableArray *DataArr;
+
+@end
+
+@implementation BankLimitViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title = @"银行卡限额";
+    self.DataArr = [[NSMutableArray alloc] init];
+    [self requestBankLimitData];
+    self.TableView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        [self requestBankLimitData];
+    }];
+    self.TableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
+    self.TableView.tableHeaderView = [self createHeadView];
+}
+
+- (UIView *)createHeadView{
+    UIView *headView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth,32)];
+    
+    UILabel *TipLable = [[UILabel alloc] initWithFrame:CGRectMake(12,0, kDeviceWidth-24, 32)];
+    TipLable.font = TEXTFONT(12);
+    TipLable.text = @"限额仅供参考";
+    TipLable.adjustsFontSizeToFitWidth = YES;
+    TipLable.textColor = [UIColor colorWithHex:0x727272];
+    [headView addSubview:TipLable];
+    return headView;
+}
+
+- (void)requestBankLimitData{
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppBankLimitServlet" parameters:nil result:^(id result) {
+        [self.TableView.mj_header endRefreshing];
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"获取银行卡限额失败，请重新刷新"];
+        }else if ([[result objectForKey:@"success"]intValue]==1 && [[result objectForKey:@"errorlog"]isEqualToString:@""]){
+        
+            if (self.DataArr.count>0) {
+                [self.DataArr removeAllObjects];
+            }
+            NSArray *arr =[result objectForKey:@"items"];
+            for (NSDictionary *dic in arr) {
+                BankLimitModel *model = [[BankLimitModel alloc] initWithContent:dic];
+                [self.DataArr addObject:model];
+            }
+            [self.TableView reloadData];
+        }else{
+            [AddHudView addProgressView:self.view message:@"获取银行卡限额信息失败，请重新刷新"];
+        }
+    }];
+}
+
+#pragma mark - delegate
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    BankLimitTableViewCell * cell = [tableView dequeueReusableCellWithIdentifier:@"BankLimitTableViewCell"];
+    if (!cell)
+    {
+        [tableView registerNib:[UINib nibWithNibName:@"BankLimitTableViewCell" bundle:nil] forCellReuseIdentifier:@"BankLimitTableViewCell"];
+        
+        cell = [tableView dequeueReusableCellWithIdentifier:@"BankLimitTableViewCell"];
+    }
+    BankLimitModel *model = [self.DataArr objectAtIndex:indexPath.row];
+    cell.model = model;
+    return cell;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return self.DataArr.count;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 66;
+}
+
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
+{
+    return [UIImage imageNamed:@"Date_Empty"];
+}
+
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    
+    text = @"暂无数据，点击重新加载";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.TableView.mj_header beginRefreshing];
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

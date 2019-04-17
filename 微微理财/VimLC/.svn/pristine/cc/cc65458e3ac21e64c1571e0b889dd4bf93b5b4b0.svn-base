@@ -1,0 +1,23 @@
+//
+//  TradeDetailViewController.h
+//  WTJR
+//
+//  Created by HM on 16/6/7.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "BaseViewController.h"
+#import "loanModel.h"
+
+typedef NS_ENUM(NSInteger, TradeInfoType) {
+    TradeinfoTypeloanInfo = 0,                         // no button type
+    TradeinfoTypeBidrecord ,                         // no button type
+    TradeinfoTypeRepaymentplan,
+};
+@interface TradeDetailViewController : BaseViewController
+
+@property (nonatomic,strong) loanModel *Loanmodel;
+
+@property (nonatomic,assign) TradeInfoType TradeinfoType;
+
+@end

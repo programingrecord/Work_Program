@@ -1,0 +1,36 @@
+//
+//  ProgressViews.h
+//  ProgressView
+//
+//  Created by HM on 16/6/15.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface ProgressViews : UIView
+//中心颜色
+
+@property (strong, nonatomic)UIColor *centerColor;
+
+//圆环背景色
+
+@property (strong, nonatomic)UIColor *arcBackColor;
+
+
+//圆环色
+@property (strong, nonatomic)UIColor *MLBColor;
+@property (strong, nonatomic)UIColor *frozenColor;
+@property (strong, nonatomic)UIColor *receiptColor;
+@property (strong, nonatomic)UIColor *MarchColor;
+@property (strong, nonatomic)UIColor *availableColor;
+
+
+//百分比数值（0-1）
+@property (assign,nonatomic) float totalAccount;
+//圆环宽度
+@property (assign, nonatomic)float width;
+
+- (void)setfrozenPersent:(float) frozenPeresent  availablePersent:(float) availablePersent receiptPersent:(float )receiptPersent MLBPersent:(float) MLBPersent MarchPercent:(float) MarchPercent totalAccount:(float)totalAccount;
+
+@end

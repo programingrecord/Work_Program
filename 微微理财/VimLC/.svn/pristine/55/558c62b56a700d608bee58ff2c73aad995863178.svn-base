@@ -1,0 +1,737 @@
+//
+//  HomeViewController.m
+//  VimLC
+//
+//  Created by 慧明 on 2017/12/26.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "HomeViewController.h"
+#import "CustomButton.h"
+#import "LoginViewController.h"
+#import "WebViewController.h"
+#import "HomeBottomView.h"
+
+#import "MSUScrollNotiView.h"
+#import "MSUHomeTableCell.h"
+#import "MSUHomeBigTableCell.h"
+#import "MSUPocketDetailController.h"
+#import "MSUHomeNotifaController.h"
+#import "RegistStepOneViewController.h"
+#import "MSUTradeDetailController.h"
+#import "MSUWebController.h"
+
+#import "MSUShadowInView.h"
+#import "MSUActivityView.h"
+
+#import "MSUPathTools.h"
+#import "CoreArchive.h"
+#import "MSUStringTools.h"
+
+@interface HomeViewController ()<UITableViewDelegate,UITableViewDataSource,SDCycleScrollViewDelegate>
+
+@property (weak, nonatomic) IBOutlet UITableView *TableView;
+@property (nonatomic,strong) SDCycleScrollView *BannerView;
+@property (nonatomic,strong) NSMutableArray *BorrowArr;
+@property (nonatomic,strong) UIView *NewWhiteView;
+@property (nonatomic,strong) UIView *ButtonWhiteView;
+@property (nonatomic,strong) UIView *headView;
+@property (nonatomic,strong) NSMutableArray *ImagesArr;
+@property (nonatomic,strong) NSMutableArray *PicAddressArr;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *BottomSpace;
+
+@property (nonatomic , strong) MSUScrollNotiView *notiView;
+@property (nonatomic , strong) UIButton *infoBtn;
+@property (nonatomic , strong) NSMutableArray *dataArr;
+@property (nonatomic , copy) NSString *registIdenty;
+@property (nonatomic , copy) NSString *activityUrl;
+
+@property (nonatomic , strong) MSUShadowInView *shadowView;
+@property (nonatomic , strong) MSUActivityView *activityView;
+@property (nonatomic , assign) NSInteger activitySign;
+@property (nonatomic , strong) NSDictionary *activityDic;
+
+@property (nonatomic , strong) UIView *redView;
+
+@end
+
+@implementation HomeViewController
+
+#pragma mark - 生命周期
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBar.translucent = NO;
+    [self.navigationController setNavigationBarHidden:YES animated:animated];
+    self.tabBarController.tabBar.hidden = NO;
+    
+    if (![CoreArchive isRecieveNoti]) {
+        _redView.hidden = YES;
+    }
+    
+    [self requestBannerData:YES];
+
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    
+    [super viewWillDisappear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:animated];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    if (is_iPhoneX){
+        self.BottomSpace.constant = 82;
+    }
+    else{
+        self.BottomSpace.constant = 49;
+    }
+    self.automaticallyAdjustsScrollViewInsets = NO;
+    self.BorrowArr = [[NSMutableArray alloc] init];
+    self.dataArr = [[NSMutableArray alloc] init];
+
+    [ self requestBannerData:NO];
+    self.TableView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        [self requestBannerData:YES];
+    }];
+    self.TableView.tableHeaderView = [self addViews];
+    self.TableView.tableFooterView = [self addfootViews];
+    self.TableView.backgroundColor = BGWhiteColor;
+    self.TableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+
+    
+    self.activitySign = 1;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadHomeServer:) name:@"reloadHomeServer" object:nil];
+    
+
+}
+
+- (void)reloadHomeServer:(NSNotificationCenter *)noti{
+    [self requestBannerData:YES];
+}
+
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    
+}
+
+#pragma mark - 代理相关
+- (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return self.dataArr.count;
+}
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    /// MSU
+    MyLog(@"zzz%ld ---- %ld",(long)indexPath.row,(unsigned long)self.dataArr.count);
+    if (indexPath.row == 0) {
+        if ([self.registIdenty isEqualToString:@"2"]) {
+            MSUHomeBigTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MSUHomeBigTableCell"];
+            if (!cell) {
+                cell = [[MSUHomeBigTableCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MSUHomeBigTableCell"];
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                cell.backgroundColor = [UIColor clearColor];
+            }
+            
+            NSDictionary *dic = self.dataArr[indexPath.row];
+            cell.dataDic = dic;
+            cell.bgImageView.hidden = NO;
+
+            __weak typeof(self) weakSelf=  self;
+            cell.giveBtnClick = ^(UIButton *btn) {
+                MSUPocketDetailController *DetailVC = [[MSUPocketDetailController alloc] init];
+                DetailVC.hidesBottomBarWhenPushed = YES;
+                [weakSelf.navigationController pushViewController:DetailVC animated:YES];
+            };
+            return cell;
+        } else {
+            MSUHomeTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MSUHomeTableCell"];
+            if (!cell) {
+                cell = [[MSUHomeTableCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MSUHomeTableCell"];
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                cell.backgroundColor = [UIColor clearColor];
+            }
+            
+            cell.bgImageView.hidden = NO;
+
+            NSDictionary *dic = self.dataArr[indexPath.row];
+            cell.dataDic = dic;
+            
+            return cell;
+        }
+    } else{
+        MSUHomeTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MSUHomeTableCell"];
+        if (!cell) {
+            cell = [[MSUHomeTableCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MSUHomeTableCell"];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            cell.backgroundColor = [UIColor clearColor];
+        }
+        
+        cell.bgImageView.hidden = YES;
+        if (indexPath.row == 0) {
+            cell.bgImageView.hidden = NO;
+        }
+        
+        NSDictionary *dic = self.dataArr[indexPath.row];
+        cell.dataDic = dic;
+        
+        return cell;
+    }
+    return nil;
+}
+
+- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if ([self.registIdenty isEqualToString:@"2"] && indexPath.row == 0) {
+        return 265.5*kDeviceHeightScale;
+    } else{
+        return 122*kDeviceHeightScale;
+    }
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section{
+    UIView *view = [[UIView alloc] initWithFrame:CGRectZero];
+    return view;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
+    UIView *view = [[UIView alloc] initWithFrame:CGRectZero];
+    return view;
+}
+
+- (CGFloat) tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    return CGFLOAT_MIN;
+}
+
+- (CGFloat) tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    return CGFLOAT_MIN;
+}
+
+- (BOOL)emptyDataSetShouldBeForcedToDisplay:(UIScrollView *)scrollView{
+    return NO;
+}
+
+- (CGFloat)verticalOffsetForEmptyDataSet:(UIScrollView *)scrollView{
+    return kDeviceWidth/4+28;
+}
+
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView{
+    return [UIImage imageNamed:@""];
+}
+
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    text = @"";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.TableView.mj_header beginRefreshing];
+}
+
+- (void)cycleScrollView:(SDCycleScrollView *)cycleScrollView didSelectItemAtIndex:(NSInteger)index{
+    if (self.PicAddressArr.count>0) {
+        WebViewController *webVC = [[WebViewController alloc] init];
+        webVC.UrlString =self.PicAddressArr[index];
+        webVC.title = @"活动";
+        webVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:webVC animated:YES];
+    }
+}
+
+#pragma mark - 获取数据
+- (void)requestBannerData:(BOOL)isrefresh{
+    
+    self.ImagesArr = [[NSMutableArray alloc] init];
+    self.PicAddressArr = [[NSMutableArray alloc] init];
+    if (!isrefresh) {
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    }
+    
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppBannerHdServlet" parameters:nil result:^(id result) {
+        if (isrefresh) {
+            [self.TableView.mj_header endRefreshing];
+        }else{
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
+        }
+        
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [PAProgressView showInView:self.view contentString:@"网络错误，请稍后再试"];
+            NSDictionary *dic = [[NSUserDefaults standardUserDefaults] objectForKey:@"homeHistory"];
+            if (dic) {
+                [self reloadUIWithResultDic:dic isNoNet:YES];
+            } else {
+                NSString *filePath = [[NSBundle mainBundle] pathForResource:@"history" ofType:@"plist"];
+                NSMutableArray *data1 = [[NSMutableArray alloc] initWithContentsOfFile:filePath];
+                NSDictionary *dic1 = data1[0];
+                [self reloadUIWithResultDic:dic1 isNoNet:NO];
+            }
+        }else{
+            
+            [self reloadUIWithResultDic:result isNoNet:NO];
+        }
+    }];
+    
+}
+
+- (void)reloadUIWithResultDic:(NSDictionary *)result isNoNet:(BOOL)isNoNet{
+    NSArray *array = [[NSArray alloc] initWithArray:result[@"items"]];
+    
+    if (self.ImagesArr.count > 0) {
+        [self.ImagesArr removeAllObjects];
+    }
+    for (int i =0; i<array.count; i++) {
+        NSDictionary *dict = [array objectAtIndex:i];
+        NSArray *strarray = [[dict objectForKey:@"imagesUrl"] componentsSeparatedByString:@"?"];
+        [self.ImagesArr addObject:[NSString stringWithFormat:@"%@",strarray[0]]];
+        [self.PicAddressArr addObject:[NSString stringWithFormat:@"%@",[dict objectForKey:@"address"]]];
+    }
+    if (self.ImagesArr.count == 0) {
+        self.BannerView.imageURLStringsGroup = @[@"bannerMsu.jpg"];
+    } else {
+        self.BannerView.imageURLStringsGroup = self.ImagesArr;
+    }
+    
+    /// MSU
+    if (self.dataArr.count > 0) {
+        [self.dataArr removeAllObjects];
+    }
+    
+    if (!isNoNet) {
+        self.notiView.textArr = result[@"scrollArr"];
+    }
+    [self.infoBtn sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@",result[@"stepIma"][@"imageUrl"]]] forState:UIControlStateNormal];
+    self.dataArr = [result[@"MainShowArr"] mutableCopy];
+    self.registIdenty = [NSString stringWithFormat:@"%@",result[@"registIdenty"]];
+    if ([self.registIdenty isEqualToString:@"2"]) {
+        self.infoBtn.hidden = YES;
+        self.headView.frame = CGRectMake(0, 0, kDeviceWidth, kDeviceHeightScale*286);///MSU
+    }
+    
+    self.activityUrl = [NSString stringWithFormat:@"%@",result[@"operationreport"]];
+    
+    NSArray *acArr = result[@"activityArr"];
+    self.activityDic = acArr[0];
+    NSString *imaStr = [NSString stringWithFormat:@"%@",_activityDic[@"imaUrl"]];
+    NSString *imaUrlStr;
+    if ([imaStr containsString:@"?"]) {
+        imaUrlStr = [imaStr substringToIndex:[imaStr rangeOfString:@"?"].location];
+    } else{
+        imaUrlStr = imaStr;
+    }
+    if (imaStr.length > 0 && (self.activitySign == 1)) {
+        self.shadowView.hidden = NO;
+        self.activityView.hidden = NO;
+        self.activitySign = 2;
+        [self.activityView.activityImaView sd_setImageWithURL:[NSURL URLWithString:imaUrlStr]];
+    }
+    
+    NSMutableString *AllAmount = [NSMutableString new];
+    NSString *AllAmountW = [NSString stringWithFormat:@"%@",[result objectForKey:@"systemAllAmountW"]];
+    NSString *AllAmountY = [NSString stringWithFormat:@"%@",[result objectForKey:@"systemAllAmountY"]];
+    
+    if ([AllAmountW integerValue] >0) {
+        [AllAmount appendString:[NSString stringWithFormat:@"%@万",AllAmountW]];
+    }
+    if ([AllAmountY integerValue] >0) {
+        [AllAmount appendString:[NSString stringWithFormat:@"%@元",AllAmountY]];
+    }
+    
+    NSMutableString *AllProfit =[NSMutableString new];
+    
+    NSString *AllProfitW = [NSString stringWithFormat:@"%@",[result objectForKey:@"systemAllProfitW"]];
+    NSString *AllProfitY = [NSString stringWithFormat:@"%@",[result objectForKey:@"systemAllProfitY"]];
+    
+    if ([AllProfitW integerValue] >0) {
+        [AllProfit appendString:[NSString stringWithFormat:@"%@万",AllProfitW]];
+    }
+    if ([AllProfitY integerValue] >0) {
+        [AllProfit appendString:[NSString stringWithFormat:@"%@元",AllProfitY]];
+    }
+    if (self.BorrowArr.count >0) {
+        [self.BorrowArr removeAllObjects];
+    }
+    NSArray *borrowArray = [[NSArray alloc] initWithArray:result[@"borrowItems"]];
+    
+    for (NSDictionary *dic in borrowArray) {
+        loanModel *model = [[loanModel alloc] initWithContent:dic];
+        [self.BorrowArr addObject:model];
+        if ([model.borrowTypeOther isEqualToString:@"新手标"]) {
+            self.ButtonWhiteView.hidden = YES;
+            self.NewWhiteView.hidden = NO;
+        }else{
+            self.ButtonWhiteView.hidden = NO;
+            self.NewWhiteView.hidden = YES;
+        }
+    }
+    
+    [self.TableView reloadData];
+}
+
+#pragma mark - 活动弹窗页
+- (MSUShadowInView *)shadowView{
+    if (!_shadowView) {
+        _shadowView = [[MSUShadowInView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight)];
+        _shadowView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.7];
+        [MSUMainWindow addSubview:_shadowView];
+        [MSUMainWindow insertSubview:_shadowView atIndex:1];
+        _shadowView.hidden = YES;
+    }
+    return _shadowView;
+}
+
+- (MSUActivityView *)activityView{
+    if (!_activityView) {
+        _activityView = [[MSUActivityView alloc] initWithFrame:CGRectMake(40*kDeviceWidthScale, 120*kDeviceHeightScale, kDeviceWidth-80*kDeviceWidthScale,  kDeviceHeight-270*kDeviceHeightScale)];
+        //        _activityView.backgroundColor = [UIColor clearColor];
+        [self.shadowView addSubview:_activityView];
+        [_activityView.activityBtn addTarget:self action:@selector(activityBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+        [_activityView.closeBtn addTarget:self action:@selector(closeAcBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+        
+    }
+    return _activityView;
+}
+
+#pragma mark - 视图相关
+/* 头部视图  */
+- (UIView *)addViews{
+    
+    self.headView= [[UIView alloc] init];
+    self.headView.frame = CGRectMake(0, 0, kDeviceWidth, kDeviceHeightScale*(286+141.5+14));///MSU  kDeviceHeightScale*+265+34+141.5+12
+    self.BannerView = [SDCycleScrollView cycleScrollViewWithFrame:CGRectMake(0, 0,kDeviceWidth,kDeviceHeightScale *170) delegate:self placeholderImage:[UIImage imageNamed:@"placeholder"]];
+    _BannerView.autoScrollTimeInterval = 5.0;
+    _BannerView.localizationImageNamesGroup = @[@"placeholder"];
+    _BannerView.pageControlAliment = SDCycleScrollViewPageContolAlimentCenter;
+    [self.headView addSubview:self.BannerView];
+    
+    UIButton *notifaBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    notifaBtn.frame = CGRectMake(kDeviceWidth-15*kDeviceWidthScale-27*kDeviceHeightScale, 28*kDeviceHeightScale, 27*kDeviceHeightScale, 27*kDeviceHeightScale);
+    notifaBtn.layer.cornerRadius = 27*kDeviceHeightScale*0.5;
+    notifaBtn.clipsToBounds = YES;
+    notifaBtn.layer.shouldRasterize = YES;
+    notifaBtn.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [notifaBtn setImage:[MSUPathTools showImageWithContentOfFileByName:@"notiicon"] forState:UIControlStateNormal];
+    [self.headView addSubview:notifaBtn];
+    [notifaBtn addTarget:self action:@selector(notifaBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+    self.redView = [[UIView alloc] init];
+    _redView.frame = CGRectMake(notifaBtn.right-7*kDeviceHeightScale, notifaBtn.top, 6*kDeviceHeightScale, 6*kDeviceHeightScale);
+    _redView.clipsToBounds = YES;
+    _redView.layer.cornerRadius = 3;
+    _redView.layer.shouldRasterize = YES;
+    _redView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    _redView.backgroundColor = [UIColor redColor];
+    [self.headView addSubview:_redView];
+    
+    
+    self.NewWhiteView = [[UIView alloc] initWithFrame:CGRectMake(0, self.BannerView.bottom,kDeviceWidth, 82*kDeviceHeightScale)];
+    self.NewWhiteView.backgroundColor = [UIColor whiteColor];
+    self.NewWhiteView.layer.cornerRadius=4;
+    self.NewWhiteView.hidden = YES;
+    
+    UILabel *TitleLable = [[UILabel alloc] initWithFrame:CGRectMake(37,15*kDeviceHeightScale,self.NewWhiteView.width-37, 28*kDeviceHeightScale)];
+    TitleLable.textColor = [UIColor colorWithHex:0x222222];
+    TitleLable.font = [UIFont fontWithName:@"PingFangSC-Semibold" size:20];
+    [self.NewWhiteView addSubview:TitleLable];
+    
+    NSString *rateString =@"新手专享福利";
+    NSRange range1= [rateString rangeOfString:@"新手"];
+    NSMutableAttributedString *Astring1 = [[NSMutableAttributedString alloc] initWithString:rateString];
+    [Astring1 addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0x222222] range:NSMakeRange(0, rateString.length)];
+    [Astring1 addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0xFF6339] range:NSMakeRange(0, range1.length)];
+    TitleLable.attributedText =Astring1;
+    
+    
+    UILabel *TitleValueLable = [[UILabel alloc] initWithFrame:CGRectMake(37,TitleLable.bottom+4*kDeviceHeightScale,self.NewWhiteView.width-37, 20*kDeviceHeightScale)];
+    TitleValueLable.textColor = [UIColor colorWithHex:0xB0B0B0];
+    TitleValueLable.text =@"666元现金红包＋12%高收益＋3％加息";
+    TitleValueLable.font = [UIFont fontWithName:@"PingFangSC-Regular" size:14];
+    [self.NewWhiteView addSubview:TitleValueLable];
+    
+    
+    [self.headView addSubview:self.NewWhiteView];
+    
+    ///MSU
+    self.notiView = [[MSUScrollNotiView alloc] initWithFrame:CGRectMake(0, self.BannerView.bottom, kDeviceWidth, 34*kDeviceHeightScale)];
+    _notiView.backgroundColor = BGOrangeColor;
+    [_headView addSubview:_notiView];
+    
+    self.ButtonWhiteView = [[UIView alloc] initWithFrame:CGRectMake(0, self.notiView.bottom, kDeviceWidth, 82*kDeviceHeightScale)];
+    self.ButtonWhiteView.backgroundColor = BGWhiteColor;
+    self.ButtonWhiteView.layer.cornerRadius=4;
+    [self.headView addSubview:self.ButtonWhiteView];
+    self.ButtonWhiteView.hidden = YES;
+    
+    NSArray *titelArr = @[@"新手福利",@"邀请有奖",@"运营报告",@"安全保障"];
+    NSArray *imageArr = @[@"xsfl_icon",@"yqyj_iconcopy",@"yybg_icon",@"aqbz_icon"];// @[@"xin",@"chun",@"kuai",@"le"]
+    for (int i = 0; i<titelArr.count; i++) {
+        CustomButton *Button = [CustomButton buttonWithType:UIButtonTypeCustom];
+        Button.frame = CGRectMake(self.ButtonWhiteView.width/titelArr.count *i,0,self.ButtonWhiteView.width/titelArr.count, kDeviceHeightScale*82);
+        Button.tag = i;
+        Button.backgroundColor = BGWhiteColor;
+        [Button setTitle:titelArr[i] forState:UIControlStateNormal];
+        [Button setImage:[UIImage imageNamed:imageArr[i]] forState:UIControlStateNormal];
+        [Button setImage:[UIImage imageNamed:imageArr[i]] forState:UIControlStateHighlighted];
+        Button.imageView.contentMode = UIViewContentModeScaleAspectFill;
+        [Button setTitleColor:[UIColor colorWithHex:0x222222] forState:UIControlStateNormal];
+        Button.titleLabel.font = TEXTFONT(13);
+        [Button addTarget:self action:@selector(ButtonClick:) forControlEvents:UIControlEventTouchUpInside];
+        [self.ButtonWhiteView addSubview:Button];
+    }
+    
+    ///MSU
+    self.infoBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    _infoBtn.frame = CGRectMake(12, self.ButtonWhiteView.bottom + 2*kDeviceHeightScale, kDeviceWidth-24, 141.5*kDeviceHeightScale);
+    _infoBtn.backgroundColor = WhiteColor;
+    _infoBtn.layer.cornerRadius = 9;
+    _infoBtn.clipsToBounds = YES;
+    _infoBtn.layer.shouldRasterize = YES;
+    _infoBtn.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [_headView addSubview:_infoBtn];
+    [_infoBtn addTarget:self action:@selector(infoBtnBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    //    _infoBtn.enabled = NO;
+    
+    return self.headView;
+}
+
+/* 尾部视图 */
+- (UIView *)addfootViews{
+    UIView *bgView = [[UIView alloc] init];
+    bgView.frame = CGRectMake(0, 0, kDeviceWidth, 75*kDeviceHeightScale+55+10);
+    bgView.backgroundColor = BGWhiteColor;
+    
+    UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, 75*kDeviceHeightScale)];
+    scrollView.backgroundColor  = BGWhiteColor;
+    scrollView.contentSize = CGSizeMake(40+450, 0);
+    scrollView.pagingEnabled = YES;
+    scrollView.delegate = self;
+    scrollView.showsHorizontalScrollIndicator = NO;
+    scrollView.showsVerticalScrollIndicator = NO;
+    self.automaticallyAdjustsScrollViewInsets = NO;
+    [bgView addSubview:scrollView];
+    if (iOS11) {
+        scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    } else{
+        self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+    
+    NSArray *imaArr = @[@"ljwm",@"xxpl",@"tzjjy"];
+    for (NSInteger i = 0; i < imaArr.count; i++) {
+        UIButton *piluBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        //        introBtn.backgroundColor = [UIColor redColor];
+        piluBtn.frame = CGRectMake(10*kDeviceWidthScale+160*i, 0, 150, 75*kDeviceHeightScale);
+        piluBtn.layer.cornerRadius = 9;
+        piluBtn.clipsToBounds = YES;
+        piluBtn.layer.shouldRasterize = YES;
+        piluBtn.tag = 233+i;
+        piluBtn.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        [piluBtn setImage:[MSUPathTools showImageWithContentOfFileByName:imaArr[i]] forState:UIControlStateNormal];
+        [scrollView addSubview:piluBtn];
+        [piluBtn addTarget:self action:@selector(piluBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    
+    // 下标
+    UIScrollView *View = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 75*kDeviceHeightScale+10, kDeviceWidth, 55)];
+    View.showsHorizontalScrollIndicator = NO;
+    View.backgroundColor = HEXCOLOR(0xd8d8d8);
+    [bgView addSubview:View];
+    
+    NSArray *title = @[@"icp增值业务\n许可证",@"华兴银行资金\n存管",@"融磊资本\n千万级风投"];//@"中国人保财险\n承保",
+    NSArray *images = @[@"zyyw",@"xhyy",@"rl"];//@"rb",
+    for (int i= 0; i<title.count; i++) {
+        HomeBottomView *BottomView = [[HomeBottomView alloc] initWithFrame:CGRectMake(i*110,0, 110,55) imageNamed:images[i] title:title[i] titleValue:nil];
+        BottomView.backgroundColor =[UIColor clearColor];
+        [View addSubview:BottomView];
+    }
+    View.contentSize = CGSizeMake(110*title.count,0);
+    return bgView;
+}
+
+#pragma mark - 交互
+- (void)closeAcBtnClick:(UIButton *)sender{
+    self.shadowView.hidden = YES;
+}
+
+- (void)activityBtnClick:(UIButton *)sender{
+    self.shadowView.hidden = YES;
+    WebViewController *webVC = [[WebViewController alloc] init];
+    webVC.UrlString = [NSString stringWithFormat:@"%@",self.activityDic[@"activityUrl"]];
+    webVC.title = @"活动";
+    webVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:webVC animated:YES];
+    
+}
+
+- (NSMutableAttributedString *)setAttriButedString:(NSString *)string  searchString1:(NSString *)searchString1 searchString2:(NSString *)searchString2{
+    NSRange range = NSMakeRange(0,string.length);
+    
+    NSMutableAttributedString *Astring = [[NSMutableAttributedString alloc] initWithString:string];
+    [Astring addAttribute:NSFontAttributeName value:TEXTFONT(24)  range:range];
+    
+    NSRange range1= [string rangeOfString:searchString1];
+    if (range1.location !=NSNotFound) {
+        [Astring addAttribute:NSFontAttributeName value:TEXTFONT(14) range:range1];
+    }
+    NSRange range2= [string rangeOfString:searchString2];
+    if (range1.location !=NSNotFound) {
+        [Astring addAttribute:NSFontAttributeName value:TEXTFONT(14) range:range2];
+    }
+    return Astring;
+}
+
+- (void)notifaBtnClick:(UIButton *)sender{
+    MSUHomeNotifaController *noti = [[MSUHomeNotifaController alloc] init];
+    noti.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:noti animated:YES];
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    NSDictionary *dic = _dataArr[indexPath.row];
+    
+    if (indexPath.row == 0) {
+        MSUPocketDetailController *VC = [[MSUPocketDetailController alloc] init];
+        VC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:VC animated:YES];
+    } else{
+        MSUTradeDetailController *VC = [[MSUTradeDetailController alloc] init];
+        VC.postDic = dic;
+        VC.idStr = [NSString stringWithFormat:@"%@",dic[@"lunaP2pBorrowId"]];
+        VC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:VC animated:YES];
+    }
+}
+
+- (void)ButtonClick:(UIButton *)Sender{
+    if (Sender.tag == 0) {
+        WebViewController *webVC = [[WebViewController alloc] init];
+        webVC.UrlString =[ NSString stringWithFormat:@"%@activity/registerActivity18.htm",Base_url];
+        webVC.title = @"新手福利";
+        webVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:webVC animated:YES];
+        
+    }else if(Sender.tag == 1){
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSDictionary *dic = [defaults objectForKey:@"registerData"];
+        if ([dic objectForKey:@"UserName"]&&[dic objectForKey:@"PassWord"] ){
+            WebViewController *webVC = [[WebViewController alloc] init];
+            webVC.UrlString =[ NSString stringWithFormat:@"%@wap/activity/reffer/invitation.htm",Base_url];
+            webVC.title = @"邀请好友";
+            webVC.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:webVC animated:YES];
+        }else{
+            LoginViewController *VC= [[LoginViewController alloc] init];
+            VC.loginType = logintypePush;
+            VC.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:VC animated:YES];
+        }
+    } else if (Sender.tag == 2){
+        if ([MSUStringTools isBlankString:self.activityUrl]) {
+            [PAProgressView showInView:self.view contentString:@"暂无运营报告"];
+        } else {
+            WebViewController *webVC = [[WebViewController alloc] init];
+            webVC.UrlString =self.activityUrl;
+            webVC.title = @"运营报告";
+            webVC.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:webVC animated:YES];
+        }
+       
+        
+    } else if(Sender.tag == 3){
+        WebViewController *webVC = [[WebViewController alloc] init];
+        webVC.UrlString =[ NSString stringWithFormat:@"%@wap/content/security.htm",Base_url];
+        webVC.title = @"安全保障";
+        webVC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:webVC animated:YES];
+    }
+}
+
+
+- (void)infoBtnBtnClick:(UIButton *)sender{
+    ///MSU
+    if ([self.registIdenty isEqualToString:@"0"]) {
+        RegistStepOneViewController *VC =[[RegistStepOneViewController alloc] init];
+        VC.RegistBlock = ^(NSString *PhoneStr) {
+            AppDelegate *appdelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+            [appdelegate loadMainView];
+            appdelegate.mainVC.selectedIndex = 3;
+            appdelegate.mainVC.tabBar.hidden = NO;
+        };
+        [self.navigationController pushViewController:VC animated:YES];
+    } else if ([self.registIdenty isEqualToString:@"1"]){
+        MSUTradeDetailController *VC = [[MSUTradeDetailController alloc] init];
+        NSDictionary *dic = [self.dataArr objectAtIndex:1];
+        VC.postDic = dic;
+        VC.idStr = [NSString stringWithFormat:@"%@",dic[@"lunaP2pBorrowId"]];
+        VC.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:VC animated:YES];
+    }
+}
+
+- (void)piluBtnClick:(UIButton *)sender{
+    NSString *str;
+    NSString *numStr;
+
+    if (sender.tag == 233) {
+        str = @"了解微米";
+        numStr = @"1";
+    } else if (sender.tag == 234){
+        str = @"信息披露";
+        numStr = @"2";
+    } else{
+        str = @"投资者教育";
+        numStr = @"3";
+    }
+    MSUWebController *web = [[MSUWebController alloc] init];
+    web.hidesBottomBarWhenPushed = YES;
+    web.titStr = str;
+    web.numStr = numStr;
+    [self.navigationController pushViewController:web animated:YES];
+}
+
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

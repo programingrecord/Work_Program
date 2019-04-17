@@ -1,0 +1,110 @@
+//
+//  MSUTradeReeeTableCell.m
+//  VimLC
+//
+//  Created by 007 on 2018/4/24.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUTradeReeeTableCell.h"
+
+#import "MSUPathTools.h"
+
+@implementation MSUTradeReeeTableCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier{
+    if (self = [super initWithStyle:style reuseIdentifier:reuseIdentifier]) {
+        [self createContentView];
+    }
+    return self;
+}
+
+- (void)createContentView{
+    UIView *bgView = [[UIView alloc] init];
+    bgView.frame = CGRectMake(0, 0, kDeviceWidth, 12*kDeviceHeightScale);
+    bgView.backgroundColor = HEXCOLOR(0xE8E8E8);
+    [self addSubview:bgView];
+    
+    self.titLab = [[UILabel alloc] init];
+    _titLab.frame = CGRectMake(12,bgView.bottom + 12*kDeviceHeightScale, kDeviceWidth-60, 22.5*kDeviceHeightScale);
+    _titLab.text = @"--";
+    _titLab.font = [UIFont systemFontOfSize:16];
+    _titLab.textColor = HEXCOLOR(0x3B3D43);
+    [self addSubview:_titLab];
+    
+    self.signLab = [[UILabel alloc] init];
+    _signLab.backgroundColor = HEXCOLOR(0xFF6339);
+    _signLab.frame = CGRectMake(kDeviceWidth-55, _titLab.top, 55, 20*kDeviceHeightScale);
+    _signLab.text = @"--";
+    _signLab.font = [UIFont systemFontOfSize:12];
+    _signLab.textColor = HEXCOLOR(0xffffff);
+    _signLab.textAlignment = NSTextAlignmentCenter;
+    UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:_signLab.bounds byRoundingCorners:UIRectCornerBottomLeft | UIRectCornerTopLeft cornerRadii:CGSizeMake(10, 10)];
+    CAShapeLayer *maskLayer = [[CAShapeLayer alloc] init];
+    maskLayer.frame = _signLab.bounds;
+    maskLayer.path = maskPath.CGPath;
+    _signLab.layer.mask = maskLayer;
+    [self addSubview:_signLab];
+    
+    self.moneyLab = [[UILabel alloc] init];
+    _moneyLab.frame = CGRectMake(12,_titLab.bottom + 21*kDeviceHeightScale, kDeviceWidth*0.5, 22*kDeviceHeightScale);
+    _moneyLab.text = @"--";
+    _moneyLab.font = [UIFont systemFontOfSize:18];
+    _moneyLab.textColor = HEXCOLOR(0xFF6339);
+    [self addSubview:_moneyLab];
+    
+    UILabel *touzinLab = [[UILabel alloc] init];
+    touzinLab.frame = CGRectMake(12, _moneyLab.bottom, 50, 22*kDeviceHeightScale);
+    touzinLab.text = @"投资金额";
+    touzinLab.font = [UIFont systemFontOfSize:12];
+    touzinLab.textColor = HEXCOLOR(0xBABABA);
+    [self addSubview:touzinLab];
+    
+    self.dateLab = [[UILabel alloc] init];
+    _dateLab.frame = CGRectMake(kDeviceWidth-12-kDeviceWidth*0.5,_titLab.bottom + 21*kDeviceHeightScale, kDeviceWidth*0.5, 22*kDeviceHeightScale);
+    _dateLab.text = @"--";
+    _dateLab.font = [UIFont systemFontOfSize:14];
+    _dateLab.textAlignment = NSTextAlignmentRight;
+    _dateLab.textColor = HEXCOLOR(0x6D6E6E);
+    [self addSubview:_dateLab];
+    
+    UILabel *reciptLab = [[UILabel alloc] init];
+    reciptLab.frame = CGRectMake(kDeviceWidth-12-50, _dateLab.bottom, 50, 22*kDeviceHeightScale);
+    reciptLab.text = @"还款日期";
+    reciptLab.font = [UIFont systemFontOfSize:12];
+    reciptLab.textColor = HEXCOLOR(0xBABABA);
+    reciptLab.textAlignment = NSTextAlignmentRight;
+    [self addSubview:reciptLab];
+    
+    self.planView = [[UIView alloc] init];
+    _planView.frame = CGRectMake(0,reciptLab.bottom + 12*kDeviceHeightScale, kDeviceWidth, 44*kDeviceHeightScale);
+    _planView.backgroundColor = HEXCOLOR(0xffffff);
+    [self addSubview:_planView];
+    
+    UIView *lineView = [[UIView alloc] init];
+    lineView.frame = CGRectMake(0, 0, kDeviceWidth, 1);
+    lineView.backgroundColor = HEXCOLOR(0xe8e8e8);
+    [_planView addSubview:lineView];
+    
+    UIImageView *imaView = [[UIImageView alloc] initWithFrame:CGRectMake(kDeviceWidth-12-14*kDeviceHeightScale,lineView.bottom + 15*kDeviceHeightScale, 14*kDeviceHeightScale, 14*kDeviceHeightScale)];
+    imaView.image = [MSUPathTools showImageWithContentOfFileByName:@"icon_arrow_right"];
+    imaView.contentMode = UIViewContentModeScaleAspectFit;
+    [_planView addSubview:imaView];
+    
+    UILabel *planLab = [[UILabel alloc] init];
+    planLab.frame = CGRectMake(kDeviceWidth-12-14*kDeviceHeightScale-100-3, lineView.bottom + 12*kDeviceHeightScale, 100, 20*kDeviceHeightScale);
+    planLab.text = @"还款计划";
+    planLab.font = [UIFont systemFontOfSize:14];
+    planLab.textColor = HEXCOLOR(0x939393);
+    planLab.textAlignment = NSTextAlignmentRight;
+    [_planView addSubview:planLab];
+}
+
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

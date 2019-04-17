@@ -1,0 +1,61 @@
+//
+//  AboutViewController.m
+//  SmallCat
+//
+//  Created by H on 2017/5/24.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "AboutViewController.h"
+
+@interface AboutViewController ()
+@property (weak, nonatomic) IBOutlet UILabel *WebLabel;
+@property (weak, nonatomic) IBOutlet UILabel *PhoneLabel;
+@property (weak, nonatomic) IBOutlet UILabel *VLabel;
+
+@end
+
+@implementation AboutViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title = @"关于微米";
+    
+    NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
+
+    NSString *appCurVersion = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+    self.VLabel.text = [NSString stringWithFormat:@"V %@",appCurVersion];
+    UITapGestureRecognizer *WebLabeltap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(WebLabeltapGesture:)];
+    
+    [self.WebLabel addGestureRecognizer:WebLabeltap];
+    
+    UITapGestureRecognizer *PhoneLabeltap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(PhoneLabeltapGesture:)];
+    
+    [self.PhoneLabel addGestureRecognizer:PhoneLabeltap];
+}
+
+- (void)WebLabeltapGesture:(UIGestureRecognizer *)tap{
+    NSString*url =@"http://www.vimzx.com";
+    
+    [[UIApplication sharedApplication]openURL:[NSURL URLWithString:url]];
+}
+- (void)PhoneLabeltapGesture:(UIGestureRecognizer *)tap{
+    NSMutableString* str=[[NSMutableString alloc] initWithFormat:@"telprompt://%@",@"400-0571-115"];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:str]];
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

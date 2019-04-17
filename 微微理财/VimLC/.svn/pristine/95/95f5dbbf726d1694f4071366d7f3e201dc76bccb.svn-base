@@ -1,0 +1,266 @@
+//
+//  CurrentViewController.m
+//  SmallCat
+//
+//  Created by H on 2017/5/25.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "CurrentViewController.h"
+#import "TradeRecordViewController.h"
+#import "PocketDetailViewController.h"
+#import "CurrentListCell.h"
+#import "CurrentOutViewController.h"
+#import "PocketDetailNewViewController.h"
+@interface CurrentViewController ()<UITableViewDelegate,UITableViewDataSource,DZNEmptyDataSetSource,DZNEmptyDataSetDelegate>
+@property (weak, nonatomic) IBOutlet UIView *BGView;
+
+@property (weak, nonatomic) IBOutlet UILabel *ToDayLable;
+@property (weak, nonatomic) IBOutlet UILabel *InAmountLable;
+@property (weak, nonatomic) IBOutlet UILabel *WaitAmount;
+@property (weak, nonatomic) IBOutlet UILabel *GetAmountLable;
+@property (weak, nonatomic) IBOutlet UITableView *ListTableview;
+@property (strong, nonatomic) NSMutableArray *dataArr;
+@property (nonatomic,assign)     NSInteger pageIndex;
+
+@property (nonatomic,copy)NSString *fundAmount;
+
+@end
+
+@implementation CurrentViewController
+
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    [self.navigationController.navigationBar setBarTintColor:[UIColor colorWithHex:0xFB6337]];
+    [self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor],NSFontAttributeName: [UIFont systemFontOfSize:18]}];
+
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.fundAmount = @"0";
+    [self createLeftNavigationItem:[UIImage imageNamed:@"nav_icon_back_white"]];
+    self.navigationController.navigationBar.translucent = NO;
+    [self.navigationController.navigationBar setBarTintColor:[UIColor colorWithHex:0xFB6337]];
+    [self.navigationController.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor whiteColor],NSFontAttributeName: [UIFont systemFontOfSize:18]}];
+
+    
+    self.BGView.backgroundColor = [UIColor colorWithHex:0xFB6337];
+    self.title = @"我的米粒宝";
+    [self.navigationController.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
+
+    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+
+    [self addNavigationItemTitleView];
+    self.dataArr = [[NSMutableArray alloc] init];
+    self.pageIndex = 1;
+    
+    self.ListTableview.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        self.pageIndex = 1;
+        [self.ListTableview.mj_footer resetNoMoreData];
+
+        [self GetCurrentDataRefresh:YES ishead:YES index:self.pageIndex];
+        
+    }];
+    
+    self.ListTableview.mj_footer = [MJRefreshBackNormalFooter footerWithRefreshingBlock:^{
+        [self GetCurrentDataRefresh:YES ishead:NO index:self.pageIndex];
+    }];
+
+    
+    
+    [self GetCurrentDataRefresh:NO ishead:YES index:self.pageIndex];
+    // Do any additional setup after loading the view from its nib.
+}
+
+- (void)addNavigationItemTitleView{
+    
+    UIButton *listButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [listButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [listButton setTitle:@"交易记录" forState:UIControlStateNormal];
+    listButton.titleLabel.font = TEXTFONT(14);
+    listButton.frame = CGRectMake(0, 0, 60, 30);
+    [listButton addTarget:self action:@selector(listButtonClick) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithCustomView:listButton];
+    self.navigationItem.rightBarButtonItem = rightItem;
+}
+- (void)listButtonClick{
+
+    TradeRecordViewController *tradeVC = [[TradeRecordViewController alloc] init];
+    tradeVC.TrandeFromType = TrandeRecordFromType_MLB;
+    [self.navigationController pushViewController:tradeVC animated:YES];
+}
+- (void)GetCurrentDataRefresh:(BOOL)isRefresh ishead:(BOOL)ishead index:(NSInteger)pageIndex{
+    if (!isRefresh) {
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    }
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppAccountCurrentServlet" parameters:nil result:^(id result) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        
+        if (isRefresh) {
+            if (ishead) {
+                [self.ListTableview.mj_header endRefreshing];
+            }else{
+                [self.ListTableview.mj_footer endRefreshing];
+            }
+        }
+
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int t = [[result objectForKey:@"success"] intValue];
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& t==0){//要加上未登录的判断
+                [self requestLogin:logintypeOutTime];
+                
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& t==1){
+                NSArray *DataArr= [result objectForKey:@"items"];
+                NSDictionary *dic= [DataArr objectAtIndex:0];
+
+                [self setUI:dic];
+                
+                NSString *pageCount=[result objectForKey:@"pageCount"];
+                if (pageIndex >= pageCount.integerValue) {
+                    [self.ListTableview.mj_footer endRefreshingWithNoMoreData];
+                }else{
+                    [self.ListTableview.mj_footer resetNoMoreData];
+                }
+                if (ishead) {
+                    if (self.dataArr.count>0) {
+                        [self.dataArr removeAllObjects];
+                    }
+                }
+                NSArray *arr =[result objectForKey:@"joinItems"];
+                for (NSDictionary *dic in arr) {
+                    CurrentListModel *model = [[CurrentListModel alloc] init];
+                    model.actualAmount =[NSString stringWithFormat:@"%@", [dic objectForKey:@"actualAmount"]];
+                    model.amount =[NSString stringWithFormat:@"%@", [dic objectForKey:@"amount"]];
+                    model.createDate =[NSString stringWithFormat:@"%@", [dic objectForKey:@"createDate"]];
+                    model.interest =[NSString stringWithFormat:@"%@", [dic objectForKey:@"interest"]];
+                    model.rate =[NSString stringWithFormat:@"%@", [dic objectForKey:@"rate"]];
+
+                    [self.dataArr addObject:model];
+                }
+                [self.ListTableview reloadData];
+                
+                
+                
+            }else{
+                [AddHudView addProgressView:self.view message:@"很遗憾，获取数据失败"];
+            }
+        }
+    }];
+
+}
+- (void)setUI:(NSDictionary *)dic{
+    self.fundAmount =[NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"fundAmount"]].floatValue];
+    
+    
+    self.ToDayLable.text = [NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"interestAmount"]].floatValue];
+
+    self.GetAmountLable.text = [NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"fundAmount"]].floatValue];
+    self.InAmountLable.text = [NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"sumInterest"]].floatValue];
+    self.WaitAmount.text = [NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"sumActualAmount"]].floatValue];
+    
+}
+- (IBAction)OutButtonClick:(id)sender {
+    CurrentOutViewController *VC= [[CurrentOutViewController alloc] init];
+    VC.AmountStr = self.fundAmount;
+    [self.navigationController pushViewController:VC animated:YES];
+
+    
+}
+- (IBAction)InButtonClick:(id)sender {
+    PocketDetailNewViewController *VC= [[PocketDetailNewViewController alloc] init];
+    [self.navigationController pushViewController:VC animated:YES];
+}
+
+
+
+
+
+#pragma mark - delegate
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    CurrentListCell * cell = [tableView dequeueReusableCellWithIdentifier:@"CurrentListCell"];
+    if (!cell)
+    {
+        [tableView registerNib:[UINib nibWithNibName:@"CurrentListCell" bundle:nil] forCellReuseIdentifier:@"CurrentListCell"];
+        
+        cell = [tableView dequeueReusableCellWithIdentifier:@"CurrentListCell"];
+    }
+    if (self.dataArr.count>=indexPath.row) {
+        cell.model = [self.dataArr objectAtIndex:indexPath.row];
+    }
+    
+    return cell;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return self.dataArr.count;
+}
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 1;
+}
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 60;
+}
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
+{
+    return [UIImage imageNamed:@"Date_Empty"];
+}
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    
+    text = @"暂无数据，点击重新加载";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.ListTableview.mj_header beginRefreshing];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end
+
+
+@implementation CurrentListModel
+
+
+
+@end

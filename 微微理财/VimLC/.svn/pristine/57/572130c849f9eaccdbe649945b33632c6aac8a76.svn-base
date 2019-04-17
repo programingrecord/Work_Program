@@ -1,0 +1,91 @@
+//
+//  MSUTotalView.m
+//  VimLC
+//
+//  Created by 007 on 2018/3/19.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUTotalView.h"
+
+@implementation MSUTotalView
+
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        
+        [self createView];
+        
+    }
+    return self;
+}
+
+
+- (void)createView{
+    self.muArr = [NSMutableArray array];
+    
+    _proGress = [[ProgressViews alloc] init];
+//    _proGress.center = CGPointMake(kDeviceWidth/2, 0);
+//    _proGress.bounds = CGRectMake(0, 0, 150, 150);
+    _proGress.frame = CGRectMake(kDeviceWidth/2-75, 0, 150, 150);
+    _proGress.arcBackColor = RGBA(255, 222, 203, 1);
+    _proGress.receiptColor = [UIColor colorWithHex:0xFB6337];
+    _proGress.frozenColor = [UIColor colorWithHex:0xB0B0B0];
+    _proGress.availableColor = [UIColor colorWithHex:0x61e1b0];
+    _proGress.MLBColor = [UIColor colorWithHex:0x72aefd];
+    _proGress.width = 20;
+    [self addSubview:_proGress];
+    
+    NSArray *titArr = @[@"米粒宝",@"七天标",@"一月标",@"三月标",@"账户余额"];
+    NSArray *colorArr = @[HEXCOLOR(0x72aefd),HEXCOLOR(0xfed473),HEXCOLOR(0xf79d4a),HEXCOLOR(0xff3737),HEXCOLOR(0x61e1b0)];
+    for (NSInteger i = 0; i < 5; i++) {
+        UIView *bgView = [[UIView alloc] init];
+        bgView.frame = CGRectMake(22, _proGress.bottom + 39*kDeviceHeightScale + (12*kDeviceHeightScale+39*kDeviceHeightScale)*i, kDeviceWidth-44, 39*kDeviceHeightScale);
+        bgView.clipsToBounds = YES;
+        bgView.layer.cornerRadius = 6;
+        bgView.layer.shouldRasterize = YES;
+        bgView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        bgView.layer.borderWidth = 1;
+        bgView.layer.borderColor = HEXCOLOR(0xa3b8cf).CGColor;
+        [self addSubview:bgView];
+        
+        UIView *circleView = [[UIView alloc] init];
+        circleView.frame = CGRectMake(22, 15.5*kDeviceHeightScale, 8*kDeviceHeightScale, 8*kDeviceHeightScale);
+        circleView.clipsToBounds = YES;
+        circleView.layer.cornerRadius = 4*kDeviceHeightScale;
+        circleView.layer.shouldRasterize = YES;
+        circleView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        circleView.backgroundColor = colorArr[i];
+        [bgView addSubview:circleView];
+        
+        UILabel *leftTitLab = [[UILabel alloc] init];
+        leftTitLab.frame = CGRectMake(circleView.right + 12, 10*kDeviceHeightScale, 100, 20*kDeviceHeightScale);
+        leftTitLab.text = [NSString stringWithFormat:@"%@:",titArr[i]];
+        leftTitLab.font = [UIFont systemFontOfSize:14];
+        leftTitLab.textColor = HEXCOLOR(0xbababa);
+        [bgView addSubview:leftTitLab];
+        
+        UILabel *rightTitLab = [[UILabel alloc] init];
+        rightTitLab.frame = CGRectMake(kDeviceWidth-44-22-kDeviceWidth*0.5, 10*kDeviceHeightScale, kDeviceWidth*0.5, 20*kDeviceHeightScale);
+        rightTitLab.font = [UIFont systemFontOfSize:16];
+        rightTitLab.textAlignment = NSTextAlignmentRight;
+        rightTitLab.textColor = HEXCOLOR(0x3f3f3f);
+        [bgView addSubview:rightTitLab];
+        [self.muArr addObject:rightTitLab];
+        
+    }
+    
+}
+
+
+
+/*
+// Only override drawRect: if you perform custom drawing.
+// An empty implementation adversely affects performance during animation.
+- (void)drawRect:(CGRect)rect {
+    // Drawing code
+}
+*/
+
+@end

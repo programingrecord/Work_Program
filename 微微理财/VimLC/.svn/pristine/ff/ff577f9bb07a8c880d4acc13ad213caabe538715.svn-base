@@ -1,0 +1,56 @@
+//
+//  MSUHomeNotifaTableCell.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/16.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUHomeNotifaTableCell.h"
+
+@implementation MSUHomeNotifaTableCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier{
+    if (self = [super initWithStyle:style reuseIdentifier:reuseIdentifier]) {
+        [self createContentView];
+    }
+    return self;
+}
+
+- (void)createContentView{
+    self.bgView = [[UIView alloc] init];
+    _bgView.frame = CGRectMake(12*kDeviceWidthScale, 12*kDeviceHeightScale, kDeviceWidth-24*kDeviceWidthScale, 61*kDeviceHeightScale);
+    _bgView.backgroundColor = HEXCOLOR(0xffffff);
+    _bgView.clipsToBounds = YES;
+    _bgView.layer.cornerRadius = 8;
+    _bgView.layer.shouldRasterize = YES;
+    _bgView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [self addSubview:_bgView];
+    
+    self.titLab = [[UILabel alloc] init];
+    _titLab.frame = CGRectMake(15*kDeviceWidthScale, 12*kDeviceHeightScale, 100*kDeviceWidthScale, 22.5*kDeviceHeightScale);
+    _titLab.font = TEXTFONT(16);
+    _titLab.textColor = titBlackColor;
+    [_bgView addSubview:_titLab];
+    
+    self.dateLab = [[UILabel alloc] init];
+    _dateLab.frame = CGRectMake(kDeviceWidth-176*kDeviceWidthScale, 13.5*kDeviceHeightScale, 140*kDeviceWidthScale, 20*kDeviceHeightScale);
+    _dateLab.font = TEXTFONT(14);
+    _dateLab.textAlignment = NSTextAlignmentRight;
+    _dateLab.textColor = titQianColor;
+    [_bgView addSubview:_dateLab];
+    
+    self.contentLab = [[UILabel alloc] init];
+    _contentLab.font = TEXTFONT(14);
+    _contentLab.textColor = titBlackQianColor;
+    _contentLab.numberOfLines = 0;
+    [_bgView addSubview:_contentLab];
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+
+@end

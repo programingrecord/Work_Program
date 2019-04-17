@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="MLBTableViewCell" rowHeight="132" id="KGk-i7-Jjw" customClass="MLBTableViewCell">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="132"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="131.5"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="MLB_bg_icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="4IO-dO-MbC">
+                        <rect key="frame" x="22" y="10" width="276" height="121.5"/>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="活期－米粒宝" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xoz-9G-J8S">
+                        <rect key="frame" x="165" y="45" width="115" height="25"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="25" id="KDi-WW-9nX"/>
+                            <constraint firstAttribute="width" constant="115" id="M7n-nh-TzI"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="18"/>
+                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="预计年化收益" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nBb-Qo-xta">
+                        <rect key="frame" x="47" y="75" width="120" height="20"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="120" id="Xnc-4s-mGU"/>
+                            <constraint firstAttribute="height" constant="20" id="vYq-8h-UA8"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="12"/>
+                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="--" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JFF-iA-6Og">
+                        <rect key="frame" x="47" y="35" width="120" height="40"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="40" id="Drq-J7-2DU"/>
+                            <constraint firstAttribute="width" constant="120" id="Kax-Lk-3Y8"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="34"/>
+                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="--" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JkY-JP-lXn">
+                        <rect key="frame" x="165" y="75" width="115" height="20"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="115" id="8Z2-IZ-AB8"/>
+                            <constraint firstAttribute="height" constant="20" id="Ror-dL-K1g"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="12"/>
+                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                <constraints>
+                    <constraint firstItem="4IO-dO-MbC" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="22" id="CaG-Od-ISA"/>
+                    <constraint firstItem="4IO-dO-MbC" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="10" id="Dw9-nL-Ely"/>
+                    <constraint firstItem="nBb-Qo-xta" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="47" id="ENs-A2-eb0"/>
+                    <constraint firstItem="JFF-iA-6Og" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="47" id="Gld-71-fMK"/>
+                    <constraint firstItem="JkY-JP-lXn" firstAttribute="top" secondItem="Xoz-9G-J8S" secondAttribute="bottom" constant="5" id="IHJ-70-HuL"/>
+                    <constraint firstAttribute="trailing" secondItem="Xoz-9G-J8S" secondAttribute="trailing" constant="40" id="LW7-um-4Tz"/>
+                    <constraint firstItem="JkY-JP-lXn" firstAttribute="centerY" secondItem="nBb-Qo-xta" secondAttribute="centerY" id="Mtr-IZ-Mhd"/>
+                    <constraint firstAttribute="trailing" secondItem="4IO-dO-MbC" secondAttribute="trailing" constant="22" id="boB-T4-tSP"/>
+                    <constraint firstItem="nBb-Qo-xta" firstAttribute="top" secondItem="JFF-iA-6Og" secondAttribute="bottom" id="dcK-Di-062"/>
+                    <constraint firstAttribute="bottom" secondItem="4IO-dO-MbC" secondAttribute="bottom" id="hKz-0W-HDK"/>
+                    <constraint firstItem="JFF-iA-6Og" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="35" id="j7p-Z8-PPp"/>
+                    <constraint firstAttribute="trailing" secondItem="JkY-JP-lXn" secondAttribute="trailing" constant="40" id="vWz-DH-ABn"/>
+                </constraints>
+            </tableViewCellContentView>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <connections>
+                <outlet property="RateLabel" destination="JFF-iA-6Og" id="mlx-M6-AhE"/>
+                <outlet property="TipLabel" destination="JkY-JP-lXn" id="jeU-pU-hjJ"/>
+            </connections>
+            <point key="canvasLocation" x="34" y="176"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="MLB_bg_icon.png" width="335" height="120"/>
+    </resources>
+</document>

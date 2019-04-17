@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_0" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13527"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="AddCardViewController">
+            <connections>
+                <outlet property="CardBankChose" destination="kgB-fV-tqn" id="Wet-K7-zCX"/>
+                <outlet property="CardNum" destination="K1b-w3-ceW" id="kUq-q5-JUS"/>
+                <outlet property="CardOwn" destination="iTq-VA-OqD" id="SC2-Th-Lt8"/>
+                <outlet property="TipButton" destination="Lf2-2i-BGS" id="CXi-1g-LNd"/>
+                <outlet property="UserCardID" destination="an8-Z2-Pa4" id="FEm-Ue-5fS"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="请输入银行卡信息" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EiN-lt-dxW">
+                    <rect key="frame" x="10" y="10" width="300" height="15"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="15" id="VjV-X9-IgV"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <color key="textColor" red="0.69019607843137254" green="0.69019607843137254" blue="0.69019607843137254" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="请输入本人真实姓名" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="iTq-VA-OqD" customClass="UnderLineField">
+                    <rect key="frame" x="0.0" y="35" width="320" height="50"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="50" id="ndo-30-dsN"/>
+                    </constraints>
+                    <color key="textColor" red="0.13333333333333333" green="0.13333333333333333" blue="0.13333333333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                    <textInputTraits key="textInputTraits"/>
+                    <connections>
+                        <outlet property="delegate" destination="-1" id="S0c-WX-vSU"/>
+                    </connections>
+                </textField>
+                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="请输入18位身份证号码" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="an8-Z2-Pa4" customClass="UnderLineField">
+                    <rect key="frame" x="0.0" y="85" width="320" height="50"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="50" id="z3O-KP-L9n"/>
+                    </constraints>
+                    <color key="textColor" red="0.1333333333" green="0.1333333333" blue="0.1333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                    <textInputTraits key="textInputTraits" keyboardType="numbersAndPunctuation"/>
+                    <connections>
+                        <outlet property="delegate" destination="-1" id="08F-Mq-KG9"/>
+                    </connections>
+                </textField>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Uz8-oU-vJY">
+                    <rect key="frame" x="10" y="275" width="300" height="45"/>
+                    <color key="backgroundColor" red="0.98431372549999996" green="0.38823529410000002" blue="0.2156862745" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="45" id="uKA-fi-qrb"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                    <state key="normal" title="添  加">
+                        <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="AddCardClick:" destination="-1" eventType="touchUpInside" id="Lms-Sf-3b0"/>
+                    </connections>
+                </button>
+                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="请输入银行卡号" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="K1b-w3-ceW" customClass="UnderLineField">
+                    <rect key="frame" x="0.0" y="135" width="320" height="50"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="50" id="XFe-Gc-zI8"/>
+                    </constraints>
+                    <color key="textColor" red="0.1333333333" green="0.1333333333" blue="0.1333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                    <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
+                    <connections>
+                        <outlet property="delegate" destination="-1" id="yiX-Qr-0sk"/>
+                    </connections>
+                </textField>
+                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="请选择支持的银行卡" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="kgB-fV-tqn" customClass="UnderLineField">
+                    <rect key="frame" x="0.0" y="185" width="320" height="50"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="50" id="p8H-g5-uMe"/>
+                    </constraints>
+                    <color key="textColor" red="0.1333333333" green="0.1333333333" blue="0.1333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                    <textInputTraits key="textInputTraits"/>
+                    <connections>
+                        <outlet property="delegate" destination="-1" id="czs-va-psD"/>
+                    </connections>
+                </textField>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" lineBreakMode="middleTruncation" hasAttributedTitle="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Lf2-2i-BGS">
+                    <rect key="frame" x="10" y="320" width="300" height="100"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="100" id="1GU-nd-9oz"/>
+                    </constraints>
+                    <state key="normal">
+                        <attributedString key="attributedTitle">
+                            <fragment>
+                                <string key="content">温馨提示：
+1、为保障账户安全，目前只支持绑定一张银行卡，充值提现同卡进出
+2、如遇到绑卡问题，请技术联系客服</string>
+                                <attributes>
+                                    <color key="NSColor" red="0.59999999999999998" green="0.59999999999999998" blue="0.59999999999999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <font key="NSFont" size="13" name="STSongti-SC-Regular"/>
+                                    <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural" lineSpacing="4" tighteningFactorForTruncation="0.0" allowsDefaultTighteningForTruncation="NO">
+                                        <tabStops>
+                                            <textTab alignment="left" location="28">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="56">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="84">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="112">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="140">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="168">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="196">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="224">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="252">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="280">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="308">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="336">
+                                                <options/>
+                                            </textTab>
+                                        </tabStops>
+                                    </paragraphStyle>
+                                </attributes>
+                            </fragment>
+                            <fragment content="400-0571-115">
+                                <attributes>
+                                    <color key="NSColor" red="0.98431000000000002" green="0.38823999999999997" blue="0.21568999999999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <font key="NSFont" size="13" name="STSongti-SC-Regular"/>
+                                    <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural" lineSpacing="4" tighteningFactorForTruncation="0.0" allowsDefaultTighteningForTruncation="NO">
+                                        <tabStops>
+                                            <textTab alignment="left" location="28">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="56">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="84">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="112">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="140">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="168">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="196">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="224">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="252">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="280">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="308">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="336">
+                                                <options/>
+                                            </textTab>
+                                        </tabStops>
+                                    </paragraphStyle>
+                                </attributes>
+                            </fragment>
+                            <fragment content="帮忙处理">
+                                <attributes>
+                                    <color key="NSColor" red="0.59999999999999998" green="0.59999999999999998" blue="0.59999999999999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <font key="NSFont" size="13" name="STSongti-SC-Regular"/>
+                                    <paragraphStyle key="NSParagraphStyle" alignment="left" lineBreakMode="wordWrapping" baseWritingDirection="natural" lineSpacing="4" tighteningFactorForTruncation="0.0" allowsDefaultTighteningForTruncation="NO">
+                                        <tabStops>
+                                            <textTab alignment="left" location="28">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="56">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="84">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="112">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="140">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="168">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="196">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="224">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="252">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="280">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="308">
+                                                <options/>
+                                            </textTab>
+                                            <textTab alignment="left" location="336">
+                                                <options/>
+                                            </textTab>
+                                        </tabStops>
+                                    </paragraphStyle>
+                                </attributes>
+                            </fragment>
+                        </attributedString>
+                    </state>
+                    <connections>
+                        <action selector="TipButonClick:" destination="-1" eventType="touchUpInside" id="QnR-2N-liW"/>
+                    </connections>
+                </button>
+            </subviews>
+            <color key="backgroundColor" red="0.96470588239999999" green="0.96470588239999999" blue="0.96470588239999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <constraints>
+                <constraint firstItem="kgB-fV-tqn" firstAttribute="top" secondItem="K1b-w3-ceW" secondAttribute="bottom" id="1CD-SR-5T4"/>
+                <constraint firstItem="Lf2-2i-BGS" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="10" id="5iI-3v-cDC"/>
+                <constraint firstItem="iTq-VA-OqD" firstAttribute="top" secondItem="EiN-lt-dxW" secondAttribute="bottom" constant="10" id="DyY-aM-PhA"/>
+                <constraint firstAttribute="trailing" secondItem="Lf2-2i-BGS" secondAttribute="trailing" constant="10" id="Gs1-sl-67p"/>
+                <constraint firstAttribute="trailing" secondItem="Uz8-oU-vJY" secondAttribute="trailing" constant="10" id="M96-Ar-sHO"/>
+                <constraint firstAttribute="trailing" secondItem="an8-Z2-Pa4" secondAttribute="trailing" id="OLX-UW-hdA"/>
+                <constraint firstAttribute="trailing" secondItem="K1b-w3-ceW" secondAttribute="trailing" id="ObH-xd-O7X"/>
+                <constraint firstAttribute="trailing" secondItem="EiN-lt-dxW" secondAttribute="trailing" constant="10" id="TB1-Ll-oek"/>
+                <constraint firstItem="Uz8-oU-vJY" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="10" id="VAN-L5-AT1"/>
+                <constraint firstItem="kgB-fV-tqn" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="Xer-nr-sYD"/>
+                <constraint firstAttribute="trailing" secondItem="kgB-fV-tqn" secondAttribute="trailing" id="YAR-e2-h15"/>
+                <constraint firstItem="Lf2-2i-BGS" firstAttribute="top" secondItem="Uz8-oU-vJY" secondAttribute="bottom" id="ZF1-vQ-Frt"/>
+                <constraint firstItem="Uz8-oU-vJY" firstAttribute="top" secondItem="kgB-fV-tqn" secondAttribute="bottom" constant="40" id="euG-H7-kPG"/>
+                <constraint firstItem="EiN-lt-dxW" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="10" id="fNo-rY-CJg"/>
+                <constraint firstItem="EiN-lt-dxW" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="10" id="hW1-RC-CQ1"/>
+                <constraint firstItem="K1b-w3-ceW" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="ii8-og-KHq"/>
+                <constraint firstAttribute="trailing" secondItem="iTq-VA-OqD" secondAttribute="trailing" id="qo8-lw-w2k"/>
+                <constraint firstItem="K1b-w3-ceW" firstAttribute="top" secondItem="an8-Z2-Pa4" secondAttribute="bottom" id="tNn-nR-sGJ"/>
+                <constraint firstItem="iTq-VA-OqD" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="vOw-nO-tMJ"/>
+                <constraint firstItem="an8-Z2-Pa4" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="vZO-gO-R7H"/>
+                <constraint firstItem="an8-Z2-Pa4" firstAttribute="top" secondItem="iTq-VA-OqD" secondAttribute="bottom" id="xnC-LC-TWE"/>
+            </constraints>
+        </view>
+    </objects>
+</document>

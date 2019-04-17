@@ -1,0 +1,16 @@
+//
+//  MLBTableViewCell.h
+//  VimLC
+//
+//  Created by 慧明 on 2017/11/7.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface MLBTableViewCell : UITableViewCell
+
+@property (weak, nonatomic) IBOutlet UILabel *RateLabel;
+@property (weak, nonatomic) IBOutlet UILabel *TipLabel;
+
+@end

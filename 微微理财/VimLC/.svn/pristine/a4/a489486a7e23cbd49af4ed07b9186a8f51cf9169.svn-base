@@ -1,0 +1,41 @@
+//
+//  TrandReecordCell.m
+//  WTJR
+//
+//  Created by HM on 16/6/6.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "TrandReecordCell.h"
+
+@implementation TrandReecordCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+- (void)setModel:(TrandRecordModel *)model{
+    if (_model != model) {
+        _model =model;
+    }
+    _TradeDate.text = _model.createDate;
+    _TradeType.text = _model.tallyType;
+    _TradeType.textColor = titBlackColor;
+    _TradeState.text = _model.balance;
+    if ([_model.isIncome isEqualToString:@"0"]) {
+        _TradeAmount.textColor = RGBA(0, 188, 141, 1);
+        _TradeAmount.text = [NSString stringWithFormat:@"%@",_model.incomeAmount];
+
+    }else{
+        _TradeAmount.textColor = RGBA(215, 12, 24, 1);
+        _TradeAmount.text = [NSString stringWithFormat:@"＋%@",_model.incomeAmount];
+
+    }
+}
+@end

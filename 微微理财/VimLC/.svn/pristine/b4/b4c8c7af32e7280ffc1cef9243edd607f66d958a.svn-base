@@ -1,0 +1,16 @@
+//
+//  LoanBidrecordCell.h
+//  WTJR
+//
+//  Created by H on 16/6/11.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface LoanBidrecordCell : UITableViewCell
+@property (weak, nonatomic) IBOutlet UILabel *BidAmount;
+@property (weak, nonatomic) IBOutlet UILabel *UsernameMask;
+@property (weak, nonatomic) IBOutlet UILabel *LoanTime;
+
+@end

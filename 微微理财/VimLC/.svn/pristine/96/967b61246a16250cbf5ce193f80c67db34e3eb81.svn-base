@@ -1,0 +1,115 @@
+//
+//  MSUCardController.m
+//  VimLC
+//
+//  Created by 007 on 2018/4/26.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUCardController.h"
+#import "MSUTopUpController.h"
+
+#import "MSUNoCardView.h"
+#import "MSUBankCardView.h"
+
+@interface MSUCardController ()
+
+@property (nonatomic , strong) MSUNoCardView *noCardView;
+@property (nonatomic , strong) MSUBankCardView *bankCardView;
+
+@end
+
+@implementation MSUCardController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+    self.title = @"我的银行卡";
+    self.view.backgroundColor = HEXCOLOR(0xe8e8e8);
+    
+    if (![CoreArchive isLockedBank]) {
+        self.noCardView.hidden = NO;
+        self.bankCardView.hidden = YES;
+    } else{
+        self.noCardView.hidden = YES;
+        self.bankCardView.hidden = NO;
+        [self requestCardInfo];
+
+    }
+    
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)requestCardInfo{
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppBankServlet" parameters:nil result:^(id result) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else if([[result objectForKey:@"success"]intValue]==1 && [[result objectForKey:@"errorlog"]isEqualToString:@""]){
+            NSArray *DataArr= [result objectForKey:@"items"];
+            NSDictionary *dic= [DataArr objectAtIndex:0];
+            _bankCardView.bankName.text = [dic objectForKey:@"bankType"];
+            _bankCardView.bankNum.text = [NSString stringWithFormat:@"**** **** **** %@",[dic objectForKey:@"accountNumber"]];
+            [_bankCardView.bankImaView sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@",[dic objectForKey:@"bankIcon"]]] placeholderImage:[UIImage imageNamed:@"image_empty"]];
+            NSString *str = [NSString stringWithFormat:@"%@",[dic objectForKey:@"realNameFull"]];
+            _bankCardView.nameLab.text = [str stringByReplacingCharactersInRange:NSMakeRange(0, 1) withString:@"*"];
+        }else{
+            [AddHudView addProgressView:self.view message:@"获取数据失败"];
+        }
+    }];
+}
+
+- (void)rechargeBtnClick:(UIButton *)sender{
+//    BankLimitViewController *VC= [[BankLimitViewController alloc] init];
+////    VC.hidesBottomBarWhenPushed = YES;
+//    NSString  *str;
+//    if ([CoreArchive isSetTradePass]) {
+//        str = @"1";
+//    } else{
+//        str = @"0";
+//    }
+//    VC.isSetPWD = str;
+//    [self.navigationController pushViewController:VC animated:YES];
+    
+    MSUTopUpController *topUp = [[MSUTopUpController alloc] init];
+    [self.navigationController pushViewController:topUp animated:YES];
+}
+
+#pragma mark - 初始化
+- (MSUNoCardView *)noCardView{
+    if (!_noCardView) {
+        _noCardView = [[MSUNoCardView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight)];
+        _noCardView.backgroundColor = HEXCOLOR(0xe8e8e8);
+        [self.view addSubview:_noCardView];
+        [_noCardView.rechargeBtn addTarget:self action:@selector(rechargeBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _noCardView;
+}
+
+- (MSUBankCardView *)bankCardView{
+    if (!_bankCardView) {
+        _bankCardView = [[MSUBankCardView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight)];
+        _bankCardView.backgroundColor = HEXCOLOR(0xe8e8e8);
+        [self.view addSubview:_bankCardView];
+    }
+    return _bankCardView;
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

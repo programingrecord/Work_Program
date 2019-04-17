@@ -1,0 +1,40 @@
+//
+//  loanCell.h
+//  项目开发
+//
+//  Created by 姜国军 on 14-4-2.
+//  Copyright (c) 2014年 姜国军. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+@class loanModel;
+
+
+typedef void (^loanCellBlock)();
+
+
+@interface loanCell : UITableViewCell
+
+@property (nonatomic,retain)loanModel                   *model;
+
+@property (weak, nonatomic) IBOutlet UILabel *BorrowType;
+@property (weak, nonatomic) IBOutlet UILabel *BorrowTitle;
+@property (weak, nonatomic) IBOutlet UILabel *Borrowrate;
+@property (weak, nonatomic) IBOutlet UILabel *BorrowDate;
+@property (weak, nonatomic) IBOutlet UILabel *BorrowAmount;
+@property (weak, nonatomic) IBOutlet UILabel *BorrowMinAmount;
+@property (weak, nonatomic) IBOutlet UIButton *bidButton;
+
+@property (weak, nonatomic) IBOutlet UIView *LineView;
+@property (weak, nonatomic) IBOutlet UIView *BottomLineview;
+
+@property (nonatomic,copy)loanCellBlock                   block;
+
+@property (weak, nonatomic) IBOutlet UIImageView *TypeImage;
+@property (weak, nonatomic) IBOutlet UILabel *TypeLebel;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *TypeWidth;
+
+@property (weak, nonatomic) IBOutlet UIProgressView *ProgressView;
+
+
+@end

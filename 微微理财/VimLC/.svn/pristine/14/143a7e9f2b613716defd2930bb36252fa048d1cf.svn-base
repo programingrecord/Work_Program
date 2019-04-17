@@ -1,0 +1,182 @@
+//
+//  ForgetViewController.m
+//  WTJR
+//
+//  Created by HM on 16/5/31.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "ForgetViewController.h"
+#import "CustomField.h"
+#import "TextFiledRightView.h"
+#import "FindViewController.h"
+
+@interface ForgetViewController ()<UITextFieldDelegate>
+@property (weak, nonatomic) IBOutlet CustomField *PhonNum;
+@property (weak, nonatomic) IBOutlet CustomField *VerifyNum;
+@property (nonatomic,strong) UIButton *VerifyRightButton;
+
+@end
+
+@implementation ForgetViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title = @"找回密码";
+    
+    [self setUI];
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(resignKeyBoard:)];
+    [self.view addGestureRecognizer:tapGesture];
+    
+    [self getImage];
+
+}
+
+- (void)setUI{
+    
+   
+    
+    
+//    [self.PhonNum setValue:[UIColor colorWithHex:0x888888] forKeyPath:@"_placeholderLabel.textColor"];
+//    [self.PhonNum setValue:TEXTFONT(13) forKeyPath:@"_placeholderLabel.font"];
+    
+    UIImageView *passleft = [[UIImageView alloc] init];
+    passleft.image = [UIImage imageNamed:@"login_icon6"];
+    passleft.frame = CGRectMake(0, 0, 45, 45);
+    passleft.contentMode = UIViewContentModeCenter;
+    self.PhonNum.leftViewMode = UITextFieldViewModeAlways;
+    self.PhonNum.leftView = passleft;
+    
+//    [self.VerifyNum setValue:[UIColor colorWithHex:0x888888] forKeyPath:@"_placeholderLabel.textColor"];
+//    [self.VerifyNum setValue:TEXTFONT(13) forKeyPath:@"_placeholderLabel.font"];
+    
+    
+    UIImageView *Verifyleft = [[UIImageView alloc] init];
+    Verifyleft.image = [UIImage imageNamed:@"login_icon3"];
+    
+    Verifyleft.frame = CGRectMake(0, 0, 45, 45);
+    Verifyleft.contentMode = UIViewContentModeCenter;
+    
+    self.VerifyNum.leftViewMode = UITextFieldViewModeAlways;
+    self.VerifyNum.leftView = Verifyleft;
+
+    self.VerifyRightButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.VerifyRightButton.frame = CGRectMake(0, 0, 80, 30);
+    [self.VerifyRightButton addTarget:self action:@selector(getImage) forControlEvents:UIControlEventTouchUpInside];
+    [self.VerifyRightButton setAdjustsImageWhenHighlighted:NO];
+    
+    self.VerifyNum.rightView=self.VerifyRightButton;
+    self.VerifyNum.rightViewMode = UITextFieldViewModeAlways;
+    
+    
+}
+
+- (void)getImage{
+    
+    [NetworkTools GetImageFromUrlString:VerifyImageUrl withParams:nil andResultBlock:^(UIImage *imageData) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.VerifyRightButton setImage:imageData forState:UIControlStateNormal];
+        });
+    } andfail:^{
+        [AddHudView addProgressView:self.view message:@"网络错误，请重新刷新"];
+
+    }];
+    
+}
+
+
+
+
+- (IBAction)nextButtonClick:(id)sender {
+    
+    [self KeyboardresignFirstResponder];
+   
+    if (![VerifyRegexTool checkTelNumber:_PhonNum.text]) {
+        [AddHudView addProgressView:self.view message:@"请输入正确的手机号码"];
+        return;
+    }
+    
+    if (_VerifyNum.text.length == 0) {
+        [AddHudView addProgressView:self.view message:@"请输入验证码"];
+        return;
+    }
+    NSMutableDictionary *prams = [[NSMutableDictionary alloc] init];
+    [prams setObject:_PhonNum.text forKey:@"username"];
+    [prams setObject:_PhonNum.text forKey:@"userPhone"];
+    [prams setObject:_VerifyNum.text forKey:@"vcodeImage"];
+
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppMitUserServlet" parameters:prams result:^(id result) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            NSString *cString = [result objectForKey:@"c"];
+            NSLog(@"LunaP2pAppMitUserServlet= %@",result);
+            
+            if ([[result objectForKey:@"success"] intValue] == 1 && [[result objectForKey:@"errorlog"] isEqualToString:@""]) {
+                
+                FindViewController *findVC = [[FindViewController alloc] initWithNibName:@"FindViewController" bundle:nil];
+                findVC.ccString = cString;
+                [self.navigationController pushViewController:findVC animated:YES];
+                
+            }
+            if ([[result objectForKey:@"errorlog"] isEqual:@"idPhoneMismatch"])
+            {
+                [self getImage];
+                [AddHudView addProgressView:self.view message:@"输入号码有误或手机号码不存在"];
+                return;
+                
+            }
+            if ([[result objectForKey:@"errorlog"] isEqualToString:@""] && [[result objectForKey:@"success"] intValue] ==0)
+            {
+                [self getImage];
+                [AddHudView addProgressView:self.view message:@"验证错误"];
+                return;
+            }
+        }
+    }];
+
+    
+}
+- (void)VerifyButtonClick{
+    [self getImage];
+}
+- (BOOL)textFieldShouldReturn:(UITextField *)textField{
+    [self KeyboardresignFirstResponder];
+    return YES;
+}
+- (void)resignKeyBoard:(UITapGestureRecognizer *)tap{
+    [self KeyboardresignFirstResponder];
+}
+- (void)KeyboardresignFirstResponder{
+   
+    
+    if ([_PhonNum isFirstResponder])//判断是否是第一响应
+    {
+        [_PhonNum resignFirstResponder];
+    }
+    
+    if ([_VerifyNum isFirstResponder])//判断是否是第一响应
+    {
+        [_VerifyNum resignFirstResponder];
+    }
+
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

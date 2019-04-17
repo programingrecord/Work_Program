@@ -1,0 +1,226 @@
+//
+//  MSUCurrentController.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/15.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUCurrentController.h"
+#import "TradeRecordViewController.h"
+
+#import "MSUCurrentView.h"
+#import "BezierCurveView.h"
+
+@interface MSUCurrentController ()<UIScrollViewDelegate>
+
+@property (nonatomic , strong) UIScrollView *scrollView;
+@property (strong, nonatomic) NSMutableArray *dataArr;
+@property (nonatomic,assign)     NSInteger pageIndex;
+
+@property (nonatomic , strong) MSUCurrentView *currentView;
+@property (strong,nonatomic)BezierCurveView *bezierView;
+
+
+@end
+
+@implementation MSUCurrentController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+    self.title = @"米粒宝";
+    
+    [self addNavigationItemTitleView];
+
+    [self createScrollView];
+    self.dataArr = [[NSMutableArray alloc] init];
+    [self GetCurrentDataRefresh:NO ishead:YES index:self.pageIndex];
+
+}
+
+- (void)addNavigationItemTitleView{
+    
+    UIButton *listButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [listButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [listButton setTitle:@"交易记录" forState:UIControlStateNormal];
+    listButton.titleLabel.font = TEXTFONT(14);
+    listButton.frame = CGRectMake(0, 0, 60, 30);
+    [listButton addTarget:self action:@selector(listButtonClick) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithCustomView:listButton];
+    self.navigationItem.rightBarButtonItem = rightItem;
+}
+
+- (void)listButtonClick{
+    
+    TradeRecordViewController *tradeVC = [[TradeRecordViewController alloc] init];
+    tradeVC.TrandeFromType = TrandeRecordFromType_MLB;
+    [self.navigationController pushViewController:tradeVC animated:YES];
+}
+
+- (void)createScrollView{
+    self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight-64)];
+    _scrollView.backgroundColor  = BGWhiteColor;
+    _scrollView.contentSize = CGSizeMake(kDeviceWidth, kDeviceHeight);
+    _scrollView.scrollEnabled = YES;
+    _scrollView.delegate = self;
+    _scrollView.showsHorizontalScrollIndicator = NO;
+    _scrollView.showsVerticalScrollIndicator = NO;
+    self.automaticallyAdjustsScrollViewInsets = NO;
+    [self.view addSubview:_scrollView];
+    if (iOS11) {
+        _scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    } else{
+        self.automaticallyAdjustsScrollViewInsets = NO;
+    }
+    
+    self.pageIndex = 1;
+    self.scrollView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        self.pageIndex = 1;
+        [self.scrollView.mj_footer resetNoMoreData];
+        
+        [self GetCurrentDataRefresh:YES ishead:YES index:self.pageIndex];
+        
+    }];
+
+    
+    self.currentView = [[MSUCurrentView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, 194*kDeviceHeightScale)];
+    _currentView.backgroundColor = HEXCOLOR(0xff6735);
+    [_scrollView addSubview:_currentView];
+    
+    //1.初始化
+    UIView *bgView = [[UIView alloc] init];
+    bgView.frame = CGRectMake(0, _currentView.bottom+13*kDeviceHeightScale, kDeviceWidth, 238.5*kDeviceHeightScale);
+    bgView.backgroundColor = HEXCOLOR(0xffffff);
+    [_scrollView addSubview:bgView];
+    
+    self.bezierView = [BezierCurveView initWithFrame:CGRectMake(5*kDeviceWidthScale, 0, kDeviceWidth-20*kDeviceWidthScale, 238.5*kDeviceHeightScale)];
+//    _bezierView.center = bgView.center;
+    [bgView addSubview:_bezierView];
+    
+    //2.折线图
+    [self drawLineChart];
+    
+    UIButton *transOutBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    transOutBtn.backgroundColor = WhiteColor;
+    transOutBtn.frame = CGRectMake(0, kDeviceHeight-64-49*kDeviceHeightScale, kDeviceWidth*0.5, 49*kDeviceHeightScale);
+    [transOutBtn setTitle:@"转出" forState:UIControlStateNormal];
+    [transOutBtn setTitleColor:titOrangeColor forState:UIControlStateNormal];
+    transOutBtn.titleLabel.font = [UIFont systemFontOfSize:18];
+    [self.scrollView addSubview:transOutBtn];
+    [transOutBtn addTarget:self action:@selector(transOutBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIButton *transInBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    transInBtn.backgroundColor = titOrangeColor;
+    transInBtn.frame = CGRectMake(kDeviceWidth*0.5, kDeviceHeight-64-49*kDeviceHeightScale, kDeviceWidth*0.5, 49*kDeviceHeightScale);
+    [transInBtn setTitle:@"转入" forState:UIControlStateNormal];
+    [transInBtn setTitleColor:WhiteColor forState:UIControlStateNormal];
+    transInBtn.titleLabel.font = [UIFont systemFontOfSize:18];
+    [self.scrollView addSubview:transInBtn];
+    [transInBtn addTarget:self action:@selector(transInBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+
+}
+
+//画折线图
+-(void)drawLineChart{
+    
+    //直线
+    //    [_bezierView drawLineChartViewWithX_Value_Names:self.x_names TargetValues:self.targets LineType:LineType_Straight];
+    NSArray *arr = @[@3.91,@3.92,@3.93,@3.94,@3.95];
+    NSMutableArray *x_names = [NSMutableArray arrayWithArray:@[@"04-03",@"04-04",@"04-05",@"04-06",@"04-07",@"04-08",@"04-09"]];
+    NSMutableArray *targets = [NSMutableArray arrayWithArray:@[@3.91,@3.92,@3.93,@3.94,@3.95,@3.96,@3.97,@3.98]];
+
+    //曲线
+    [_bezierView drawLineChartViewWithX_Value_Names:x_names TargetValues:targets dataArr:arr LineType:LineType_Curve];
+}
+
+#pragma mark - 数据请求
+- (void)GetCurrentDataRefresh:(BOOL)isRefresh ishead:(BOOL)ishead index:(NSInteger)pageIndex{
+    if (!isRefresh) {
+        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    }
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppAccountCurrentServlet" parameters:nil result:^(id result) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        
+        if (isRefresh) {
+            if (ishead) {
+                [self.scrollView.mj_header endRefreshing];
+            }else{
+                [self.scrollView.mj_footer endRefreshing];
+            }
+        }
+        
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int t = [[result objectForKey:@"success"] intValue];
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& t==0){//要加上未登录的判断
+                [self requestLogin:logintypeOutTime];
+                
+            }else if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& t==1){
+                NSArray *DataArr= [result objectForKey:@"items"];
+                NSDictionary *dic= [DataArr objectAtIndex:0];
+                
+                [self reloadUIWithDic:dic];
+                
+                NSString *pageCount=[result objectForKey:@"pageCount"];
+                if (pageIndex >= pageCount.integerValue) {
+                    [self.scrollView.mj_footer endRefreshingWithNoMoreData];
+                }else{
+                    [self.scrollView.mj_footer resetNoMoreData];
+                }
+                if (ishead) {
+                    if (self.dataArr.count>0) {
+                        [self.dataArr removeAllObjects];
+                    }
+                }
+//                NSArray *arr =[result objectForKey:@"joinItems"];
+//                for (NSDictionary *dic in arr) {
+//                    MSUCurrentListModel *model = [[MSUCurrentListModel alloc] init];
+//                    model.actualAmount =[NSString stringWithFormat:@"%@", [dic objectForKey:@"actualAmount"]];
+//                    model.amount =[NSString stringWithFormat:@"%@", [dic objectForKey:@"amount"]];
+//                    model.createDate =[NSString stringWithFormat:@"%@", [dic objectForKey:@"createDate"]];
+//                    model.interest =[NSString stringWithFormat:@"%@", [dic objectForKey:@"interest"]];
+//                    model.rate =[NSString stringWithFormat:@"%@", [dic objectForKey:@"rate"]];
+//
+//                    [self.dataArr addObject:model];
+//                }
+//                [self.ListTableview reloadData];
+                
+                
+                
+            }else{
+                [AddHudView addProgressView:self.view message:@"很遗憾，获取数据失败"];
+            }
+        }
+    }];
+    
+}
+
+- (void)reloadUIWithDic:(NSDictionary *)dic{
+    self.currentView.priceLab.text = [NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"interestAmount"]].floatValue];
+    
+    self.currentView.totalLab.text = [NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"fundAmount"]].floatValue];
+    self.currentView.moneyLab.text = [NSString stringWithFormat:@"%.2f",[NSString stringWithFormat:@"%@",[dic objectForKey:@"sumInterest"]].floatValue];
+}
+
+#pragma mark - 点击事件
+- (void)transOutBtnClick:(UIButton *)sender{
+    
+}
+
+- (void)transInBtnClick:(UIButton *)sender{
+    
+}
+
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+
+
+@end

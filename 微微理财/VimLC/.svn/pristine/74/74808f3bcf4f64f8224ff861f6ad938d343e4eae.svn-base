@@ -1,0 +1,13 @@
+//
+//  MSUSetTradePWDController.h
+//  VimLC
+//
+//  Created by 007 on 2018/4/23.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "BaseViewController.h"
+
+@interface MSUSetTradePWDController : BaseViewController
+
+@end

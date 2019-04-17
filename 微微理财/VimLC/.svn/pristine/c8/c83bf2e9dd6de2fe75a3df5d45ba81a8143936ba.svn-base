@@ -1,0 +1,206 @@
+//
+//  AccountViewController.m
+//  WTJR
+//
+//  Created by HM on 16/6/6.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "AccountViewController.h"
+#import "ProgressViews.h"
+#import "LoginViewController.h"
+#import "WithdrawViewController.h"
+#import "LockNameViewController.h"
+#import "RealViewController.h"
+#import "AddCardViewController.h"
+#import "TopUpViewController.h"
+@interface AccountViewController ()<UIAlertViewDelegate>
+@property (nonatomic,strong) ProgressViews *proGress;
+
+@property (weak, nonatomic) IBOutlet UILabel *ReceiptAmount;
+@property (weak, nonatomic) IBOutlet UILabel *FrozenAmount;
+@property (weak, nonatomic) IBOutlet UILabel *AvailableAmount;
+@property (weak, nonatomic) IBOutlet UILabel *MLBAmount;
+
+@property (weak, nonatomic) IBOutlet UIButton *WithdrawButton;
+@property (nonatomic,strong) NSMutableDictionary *userInfo;
+
+@end
+
+@implementation AccountViewController
+
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title = @"资产详情";
+    
+    _proGress = [[ProgressViews alloc] init];
+    _proGress.center = CGPointMake(kDeviceWidth/2, 100);
+    _proGress.bounds = CGRectMake(0, 0, 150, 150);
+    _proGress.arcBackColor = RGBA(255, 222, 203, 1);
+    _proGress.receiptColor = [UIColor colorWithHex:0xFB6337];
+    _proGress.frozenColor = [UIColor colorWithHex:0xB0B0B0];
+    _proGress.availableColor = [UIColor colorWithHex:0x5381FF];
+    _proGress.MLBColor = [UIColor colorWithHex:0xF3FA69];
+    _proGress.width = 20;
+    [self.view addSubview:_proGress];
+    
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *userInfoDetial = [userDefaults objectForKey:@"userInfoDetial"];
+    self.userInfo = [userInfoDetial mutableCopy];
+    [self requestAccounDetail];
+    
+}
+- (void)requestAccounDetail{
+    
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppAmountServlet" parameters:nil result:^(id result) {
+        
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& success==0){
+
+                [self requestLogin];
+            }
+            else if([[result objectForKey:@"errorlog"]isEqualToString:@""]&& success==1){
+
+                NSArray *arr= [result objectForKey:@"items"];
+                NSDictionary *Dic = [arr objectAtIndex:0];
+                
+                float receipt = [[[Dic objectForKey:@"receiptAmount"] stringByReplacingOccurrencesOfString:@"," withString:@""] floatValue];
+                float frozen = [[[Dic objectForKey:@"frozenAmount"] stringByReplacingOccurrencesOfString:@"," withString:@""] floatValue];
+                float available = [[[Dic objectForKey:@"availableAmount"] stringByReplacingOccurrencesOfString:@"," withString:@""] floatValue];
+                float MLB = [[[Dic objectForKey:@"currentFundAmount"] stringByReplacingOccurrencesOfString:@"," withString:@""] floatValue];
+
+                _ReceiptAmount.text = [Dic objectForKey:@"receiptAmount"];
+                _FrozenAmount.text = [Dic objectForKey:@"frozenAmount"];
+                _AvailableAmount.text = [Dic objectForKey:@"availableAmount"];
+                _MLBAmount.text = [Dic objectForKey:@"currentFundAmount"];
+                if (_totalAmount !=0) {
+//                    [_proGress setfrozenPersent:frozen/_totalAmount availablePersent:available/_totalAmount receiptPersent:receipt/_totalAmount MLBPersent:MLB/_totalAmount totalAccount:self.totalAmount];
+                }
+            }else{
+                [AddHudView addProgressView:self.view message:@"获取数据失败"];
+
+            }
+        }
+    }];
+    
+
+}
+- (void)requestLogin{
+    
+    [[DataRequestServer getDataRequestServerData] requestLoginresult:^(NSString *LoginState) {
+        if ([LoginState isEqualToString:@"true"]) {
+            [self requestAccounDetail];
+        }else{
+            [AddHudView addProgressView:self.view message:@"登录失效，请重新登录"];
+            double delayInSeconds = 1.2;
+            __block AccountViewController* BlockVC = self;
+            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+            dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+                LoginViewController *loginVc= [[LoginViewController alloc] init];
+                loginVc.loginType = logintypeOutTime;
+                loginVc.hidesBottomBarWhenPushed = YES;
+
+                [BlockVC.navigationController pushViewController:loginVc animated:YES];
+            });
+            
+        }
+    }];
+}
+
+- (IBAction)RechargeClick:(id)sender {
+//    int isLockedRealName=[[self.userInfo objectForKey:@"isLockedRealName"]intValue];
+//    if (isLockedRealName==0) {
+//        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未绑定姓名，请前往绑定" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+//        alertView.tag=1001;
+//        [alertView show];
+//        return;
+//    }
+//    int isIdentity=[[self.userInfo objectForKey:@"isIdentity"]intValue];
+//    if (isIdentity==0) {
+//        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未进行实名认证，请前往认证" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+//        alertView.tag=1002;
+//        [alertView show];
+//        return;
+//    }
+    
+    if (![CoreArchive isLockedBank]) {
+        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未添加银行卡，请前往添加" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        alertView.tag=1003;
+        [alertView show];
+        return;
+    }
+    
+    TopUpViewController *TopUpVC = [[TopUpViewController alloc] initWithNibName:@"TopUpViewController" bundle:nil];
+    
+    TopUpVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:TopUpVC animated:YES];
+}
+- (IBAction)WithdrawClcik:(id)sender {
+    
+   
+    
+//    int isLockedRealName=[[self.userInfo objectForKey:@"isLockedRealName"]intValue];
+//    
+//    
+//    if (isLockedRealName==0) {
+//        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未绑定姓名，请前往绑定" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+//        alertView.tag=1001;
+//        [alertView show];
+//        return;
+//    }
+//    int isIdentity=[[self.userInfo objectForKey:@"isIdentity"]intValue];
+//    if (isIdentity==0) {
+//        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未进行实名认证，请前往认证" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+//        alertView.tag=1002;
+//        [alertView show];
+//        return;
+//    }
+    
+    
+//    int isLockedBank=[[self.userInfo objectForKey:@"isLockedBank"]intValue];
+    if (![CoreArchive isLockedBank]) {
+        UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:@"温馨提示" message:@"未添加银行卡，请前往添加" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+        alertView.tag=1003;
+        [alertView show];
+        return;
+    }
+    
+    
+    WithdrawViewController *WithDrawVC = [[WithdrawViewController alloc] init];
+    [self.navigationController pushViewController:WithDrawVC animated:YES];
+}
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if (buttonIndex == 1) {
+        if (alertView.tag == 1001) {
+            LockNameViewController *LockName =[[LockNameViewController alloc] init];
+            [self.navigationController pushViewController:LockName animated:YES];
+        }else if (alertView.tag == 1002){
+            RealViewController *RealNameVC =[[RealViewController alloc] init];
+            [self.navigationController pushViewController:RealNameVC animated:YES];
+        }else if (alertView.tag == 1003){
+            AddCardViewController *AddCardVC =[[AddCardViewController alloc] init];
+            [self.navigationController pushViewController:AddCardVC animated:YES];
+        }
+    }
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

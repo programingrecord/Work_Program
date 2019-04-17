@@ -1,0 +1,321 @@
+//
+//  MSUTradeDetailView.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/15.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUTradeDetailView.h"
+#import "MSUQuestionView.h"
+
+#import "MSUTradePlanTableCell.h"
+#import "MSUTradeRecordTableCell.h"
+
+#import "MSUStringTools.h"
+#import "MSUPathTools.h"
+
+@interface MSUTradeDetailView()<UITableViewDelegate,UITableViewDataSource,DZNEmptyDataSetSource,DZNEmptyDataSetDelegate>
+
+@property (nonatomic,strong) UITableView *planTableView;
+@property (nonatomic,strong) UITableView *recordTableView;
+@property (nonatomic , strong) MSUQuestionView *questionView;
+
+
+@end
+
+@implementation MSUTradeDetailView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+
+        self.btnArr = [NSMutableArray array];
+        [self createView];
+        
+    }
+    return self;
+}
+
+
+- (void)createView{
+    UIView *bgView = [[UIView alloc] init];
+    bgView.frame = CGRectMake(0, 0, kDeviceWidth, 47*kDeviceHeightScale);
+    bgView.backgroundColor = HEXCOLOR(0xffffff);
+    [self addSubview:bgView];
+
+    
+    NSArray *arr = @[@"项目详情",@"常见问题",@"投标记录"];//,@"还款预估"
+    for (NSInteger i = 0; i < arr.count; i++) {
+        UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+        btn.frame = CGRectMake(kDeviceWidth/3*i, 13*kDeviceHeightScale, kDeviceWidth/3, 20*kDeviceHeightScale);//CGRectMake(kDeviceWidth/3*i, 13*kDeviceHeightScale, kDeviceWidth/3, 20*kDeviceHeightScale)
+        [btn setTitle:arr[i] forState:UIControlStateNormal];
+        [btn setTitleColor:HEXCOLOR(0x4a4a4a) forState:UIControlStateNormal];
+        [btn setTitleColor:titOrangeColor forState:UIControlStateSelected];
+        btn.titleLabel.font = [UIFont systemFontOfSize:14];
+        [self addSubview:btn];
+        [btn addTarget:self action:@selector(iconBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+        [self.btnArr addObject:btn];
+        
+        if (i == 0) {
+            btn.selected = YES;
+        }
+    }
+    
+    self.lineView = [[UIView alloc] init];
+    _lineView.frame = CGRectMake(kDeviceWidth/3*0.5-30*kDeviceWidthScale, 44.5*kDeviceHeightScale, 60*kDeviceWidthScale, 1.5);//CGRectMake(kDeviceWidth/3*0.5-30*kDeviceWidthScale, 44.5*kDeviceHeightScale, 60*kDeviceWidthScale, 1.5)
+    _lineView.backgroundColor =titOrangeColor;
+    [bgView addSubview:_lineView];
+    
+    self.programView.hidden = NO;
+//    self.planTableView.hidden = YES;
+    self.questionView.hidden = YES;
+    self.recordTableView.hidden = YES;
+    
+}
+
+#pragma mark - 更新数据
+- (void)setDataArr:(NSArray *)dataArr{
+    _dataArr = dataArr;
+    _programView.dataArr = _dataArr;
+}
+
+- (void)setDateArr:(NSArray *)dateArr{
+    _dateArr = dateArr;
+    _programView.dateArr = _dateArr;
+}
+
+- (void)setImaArr:(NSArray *)imaArr{
+    _imaArr = imaArr;
+    _programView.imaArr = _imaArr;
+}
+
+- (void)setDataDic:(NSDictionary *)dataDic{
+    _dataDic = dataDic;
+    _programView.dataDic = _dataDic;
+    NSString *queStr = [NSString stringWithFormat:@"%@",_dataDic[@"problems"]];
+    if ([MSUStringTools isBlankString:queStr]) {
+        queStr = [NSString stringWithFormat:@"%@", @"Q:什么是票据宝？\n     A:票票据宝是以借款项目所出具的银行承兑汇票作为基础，实现债权匹配，待投资者投资满期天后自动退出，退出成功后按退出本金的比例结算对应收益。借款一般在7天到3个月之间。\n\n Q:票据宝安全吗？\n     A:银行承兑汇票凭借银行信用，银行承诺无条件兑付作为保障，即使借款人第一还款来源丧失，借款到期将质押的票据在二级市场转让或者提前向承兑银行贴现来获取还款资金，对出借人来说，没有任何风险，是目前市面上P2P网络借贷中安全系数最高的产品之一。\n\n Q:票据宝标的未满怎么办? \n     A：标的发布3天内如果未满标标的将发生流标，出借资金将全数自动返回您的账户，目前票据宝基本当天就能满标，未出现过流标的情况，请您放心投资。\n\n Q：定期产品起息时间是如何计算？\n     标A：定期产品起息时间为满标日的次日计算。\n\n Q：票据宝收益如何计算\n     A：定期产品分为天标和月标\n    月标的计算公式：定期到期收益 = 本金 * 定期年化收益率 / 12* 月数 \n    如：票据宝1月标 \n    天标的计算公式：定期到期收益 = 本金 * 定期年化收益率 /360* 天数 \n    如：票据宝7天\n\n Q：票据宝支不支持提前赎回？\n     A：暂不支持。\n\n Q：票据宝何时回款 \n  A：票据宝到期之日回款 \n\n  Q：票据宝到期提现需要多久？\n     A：票据宝项目到期后，您的出借本金和收益将返还到您的余额账户，您可以根据自己的需求选择提现到个人的银行卡账户，或者继续投资我们的产品。票据宝提现规则一般为：\n    1：工作日16:00之前申请提现，当天处理提现操作，具体到账时间以银行通知为准 \n    2：工作日16:00之后申请提现，顺延第二个工作日处理提现操作，具体到账时间以银行通知为准 \n    3：如遇周末节假日，提现处理操作时间顺延至下一个工作日"];
+    }
+    _questionView.questionLab.text = queStr;
+    [MSUStringTools changeLineSpaceForLabel:_questionView.questionLab WithSpace:5];
+
+    CGRect recta = [MSUStringTools danamicGetHeightFromText:_questionView.questionLab.text WithWidth:kDeviceWidth-40 font:14];
+    _questionView.questionLab.frame = CGRectMake(20, 0, kDeviceWidth-40, recta.size.height);
+
+}
+
+//- (void)setPlanArr:(NSArray *)planArr{
+//    _planArr = planArr;
+//
+//    [self.planTableView reloadData];
+//}
+
+- (void)setRecordArr:(NSArray *)recordArr{
+    _recordArr = recordArr;
+    
+    [self.recordTableView reloadData];
+}
+
+#pragma -mark - 代理
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    if (tableView == _planTableView) {
+        return _planArr.count;
+    } else if (tableView == _recordTableView){
+        return _recordArr.count;
+    }
+    return 0;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (tableView == _planTableView) {
+        MSUTradePlanTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MSUTradePlanTableCell"];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        if (_planArr.count >= indexPath.row) {
+            NSDictionary *dic = _planArr[indexPath.row];
+            cell.qiLab.text = [NSString stringWithFormat:@"%ld期",indexPath.row+1];
+            cell.timeLab.text = [dic objectForKey:@"expireDate"];
+            cell.moneyLab.text = [dic objectForKey:@"repaySumAmount"];
+        }
+    
+        return cell;
+    } else if (tableView == _recordTableView){
+        MSUTradeRecordTableCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MSUTradeRecordTableCell"];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        NSDictionary *dic = _recordArr[indexPath.row];
+        cell.moneyLab.text = [NSString stringWithFormat:@"%@元",[dic objectForKey:@"bidAmount"]];
+        cell.nameLab.text = [dic objectForKey:@"usernameMask"];
+        NSString *time = [dic objectForKey:@"bidTime"];
+        NSString *timestring = [[time componentsSeparatedByString:@"."] objectAtIndex:0];
+        NSString  *bidNote =[dic objectForKey:@"bidNote"];
+        if (bidNote.length>0) {
+            cell.timeLab.text = [NSString stringWithFormat:@"%@ (%@)",timestring,[dic objectForKey:@"bidNote"]];
+        }else{
+            cell.timeLab.text = [NSString stringWithFormat:@"%@",timestring];
+        }
+        
+        cell.topImaView.hidden = YES;
+        if (indexPath.row == 0) {
+            cell.topImaView.hidden = NO;
+            cell.topImaView.image = [MSUPathTools showImageWithContentOfFileByName:@"dym_icon"];
+        } else if (indexPath.row == 1){
+            cell.topImaView.hidden = NO;
+            cell.topImaView.image = [MSUPathTools showImageWithContentOfFileByName:@"dem_icon"];
+        } else if (indexPath.row == 2){
+            cell.topImaView.hidden = NO;
+            cell.topImaView.image = [MSUPathTools showImageWithContentOfFileByName:@"dsm_icon"];
+        }
+        
+        return cell;
+    }
+    return nil;
+}
+
+- (BOOL)emptyDataSetShouldBeForcedToDisplay:(UIScrollView *)scrollView{
+    return NO;
+}
+- (CGFloat)verticalOffsetForEmptyDataSet:(UIScrollView *)scrollView{
+    return 0;
+}
+
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
+{
+    return [UIImage imageNamed:@"Date_Empty"];
+}
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    text = @"暂无投标记录";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.planTableView.mj_header beginRefreshing];
+    [self.recordTableView.mj_header beginRefreshing];
+
+}
+
+
+#pragma mark - 点击事件
+- (void)iconBtnClick:(UIButton *)sender{
+    for (UIButton *btn in _btnArr) {
+        btn.selected = NO;
+    }
+    sender.selected = YES;
+    
+    [UIView animateWithDuration:0.25 animations:^{
+        _lineView.center = CGPointMake(sender.center.x, 45*kDeviceHeightScale);
+    }];
+    
+    if (self.indexBlock) {
+        self.indexBlock(sender.titleLabel.text);
+    }
+    
+    if (sender == _btnArr[0]) {
+        self.programView.hidden = NO;
+//        self.planTableView.hidden = YES;
+        self.questionView.hidden = YES;
+        self.recordTableView.hidden = YES;
+    }
+    else if (sender == _btnArr[1]){
+        self.programView.hidden = YES;
+//        self.planTableView.hidden = NO;
+        self.questionView.hidden = NO;
+        self.recordTableView.hidden = YES;
+    }
+    else{
+        self.programView.hidden = YES;
+//        self.planTableView.hidden = YES;
+        self.questionView.hidden = YES;
+        self.recordTableView.hidden = NO;
+    }
+}
+
+#pragma mark - 初始化
+- (MSUProgramDetailView *)programView{
+    if (!_programView) {
+        _programView = [[MSUProgramDetailView alloc] initWithFrame:CGRectMake(0, 47*kDeviceHeightScale, kDeviceWidth, kDeviceHeight-47*kDeviceHeightScale+200*kDeviceHeightScale)];
+        _programView.backgroundColor = HEXCOLOR(0xf3f3f3);
+
+        [self addSubview:_programView];
+    }
+    return _programView;
+}
+
+- (MSUQuestionView *)questionView{
+    if (!_questionView) {
+        _questionView = [[MSUQuestionView alloc] initWithFrame:CGRectMake(0, 57*kDeviceHeightScale, kDeviceWidth, kDeviceHeight+450*kDeviceHeightScale)];
+        _questionView.backgroundColor = WhiteColor;
+        [self addSubview:_questionView];
+    }
+    return _questionView;
+}
+
+- (UITableView *)planTableView{
+    if (!_planTableView) {
+        _planTableView = [[UITableView alloc] initWithFrame:CGRectMake(0,  57*kDeviceHeightScale, kDeviceWidth, kDeviceHeight- 47*kDeviceHeightScale) style:UITableViewStylePlain];
+        _planTableView.backgroundColor = BGWhiteColor;
+        _planTableView.scrollEnabled = YES;
+        _planTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+        _planTableView.showsVerticalScrollIndicator = NO;
+        [self addSubview:_planTableView];
+        _planTableView.delegate = self;
+        _planTableView.dataSource = self;
+        _planTableView.emptyDataSetSource = self;
+        _planTableView.emptyDataSetDelegate = self;
+        _planTableView.panGestureRecognizer.delaysTouchesBegan = _planTableView.delaysContentTouches;
+        _planTableView.rowHeight = 59*kDeviceHeightScale;
+        [_planTableView registerClass:[MSUTradePlanTableCell class] forCellReuseIdentifier:@"MSUTradePlanTableCell"];
+        if (iOS11) {
+            _planTableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+    }
+    return _planTableView;
+}
+
+- (UITableView *)recordTableView{
+    if (!_recordTableView) {
+        _recordTableView = [[UITableView alloc] initWithFrame:CGRectMake(0,  47*kDeviceHeightScale, kDeviceWidth, kDeviceHeight- 47*kDeviceHeightScale) style:UITableViewStylePlain];
+        _recordTableView.backgroundColor = BGWhiteColor;
+        _recordTableView.scrollEnabled = YES;
+        _recordTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+        _recordTableView.showsVerticalScrollIndicator = NO;
+        [self addSubview:_recordTableView];
+        _recordTableView.delegate = self;
+        _recordTableView.dataSource = self;
+        _recordTableView.emptyDataSetSource = self;
+        _recordTableView.emptyDataSetDelegate = self;
+        _recordTableView.panGestureRecognizer.delaysTouchesBegan = _recordTableView.delaysContentTouches;
+        _recordTableView.rowHeight = 59*kDeviceHeightScale;
+        [_recordTableView registerClass:[MSUTradeRecordTableCell class] forCellReuseIdentifier:@"MSUTradeRecordTableCell"];
+        if (iOS11) {
+            _recordTableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+    }
+    return _recordTableView;
+}
+
+
+@end

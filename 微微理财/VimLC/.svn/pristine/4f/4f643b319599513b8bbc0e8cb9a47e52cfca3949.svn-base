@@ -1,0 +1,372 @@
+//
+//  TradeRecordViewController.m
+//  WTJR
+//
+//  Created by HM on 16/6/6.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "TradeRecordViewController.h"
+#import "CustomButton.h"
+#import "TrandRecordModel.h"
+#import "LoginViewController.h"
+#import "TrandReecordCell.h"
+#import "TradeTypeViewController.h"
+
+@interface TradeRecordViewController ()<UITableViewDelegate,UITableViewDataSource,DZNEmptyDataSetSource,DZNEmptyDataSetDelegate>
+{
+    NSInteger currentIndex;
+    UIView *ChoiceViews;
+}
+
+@property (weak, nonatomic) IBOutlet UITableView *TradeRecordTableView;
+@property (nonatomic,strong) NSMutableArray *dataSourceArray;
+@property (nonatomic,strong) NSArray *TypeArr;
+@property (nonatomic,strong) UITableView *TypeTableView;
+
+@end
+
+@implementation TradeRecordViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    _dataSourceArray = [[NSMutableArray alloc] init];
+    currentIndex = 1;
+
+    __weak typeof(self) weakSelf = self;
+    self.TradeRecordTableView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        __strong typeof(self) strongSelf = weakSelf;
+        [self.TradeRecordTableView.mj_footer resetNoMoreData];
+        currentIndex = 1;
+        if (self.TrandeFromType == TrandeRecordFromType_MLB) {
+            [strongSelf RequestLingQianbaoDatarefreshView:YES ishead:YES];
+        }else{
+            [strongSelf RequestTradeDataWithType:strongSelf.TrandeType refreshView:YES ishead:YES];
+        }
+    }];
+    self.TradeRecordTableView.mj_footer = [MJRefreshBackNormalFooter footerWithRefreshingBlock:^{
+        __strong typeof(self) strongSelf = weakSelf;
+        if (self.TrandeFromType == TrandeRecordFromType_MLB) {
+            [strongSelf RequestLingQianbaoDatarefreshView:YES ishead:NO];
+        }else{
+            [strongSelf RequestTradeDataWithType:strongSelf.TrandeType refreshView:YES ishead:NO];
+        }
+    }];
+    
+    self.TradeRecordTableView.emptyDataSetSource = self;
+    self.TradeRecordTableView.emptyDataSetDelegate = self;
+    
+    if (self.TrandeFromType == TrandeRecordFromType_MLB) {
+        [self RequestLingQianbaoDatarefreshView:NO ishead:YES];
+        self.title = @"米粒宝记录";
+    }else if(self.TrandeFromType == TrandeRecordFromType_ALL){
+        [self addTypeTableView];
+        [self addNavigationItemTitleView];
+        [self RequestTradeDataWithType:self.TrandeType refreshView:NO ishead:YES];
+        self.title = @"交易记录";
+    }else if (self.TrandeFromType == TrandeRecordFromType_WITHDRAW){
+        self.title = @"提现记录";
+        [self RequestTradeDataWithType:self.TrandeType refreshView:NO ishead:YES];
+    }else if (self.TrandeFromType == TrandeRecordFromType_TOPUP){
+        self.title = @"充值记录";
+        [self RequestTradeDataWithType:self.TrandeType refreshView:NO ishead:YES];
+    }
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - UI初始化
+- (void)addTypeTableView{
+    self.TypeArr = @[@"全部",@"线上充值",@"提现",@"投标成功",@"收款",@"投标奖励",@"利息管理费",@"推荐奖励",@"米粒宝充值",@"米粒宝提现",@"红包奖励"];
+
+    self.TypeTableView  = [[UITableView alloc] initWithFrame:CGRectMake(kDeviceWidth, 0, 200, kDeviceHeight) style:UITableViewStylePlain];
+    self.TypeTableView.delegate = self;
+    self.TypeTableView.dataSource = self;
+    self.TypeTableView.backgroundColor = [UIColor whiteColor];
+    self.TypeTableView.tableFooterView=[[UIView alloc]initWithFrame:CGRectZero];
+    [self.view addSubview:self.TypeTableView];
+}
+
+- (void)addNavigationItemTitleView{
+    UIButton *listButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [listButton setTitleColor:[UIColor colorWithHex:0x666666] forState:UIControlStateNormal];
+    [listButton setTitle:@"筛选" forState:UIControlStateNormal];
+    listButton.titleLabel.font = TEXTFONT(14);
+    listButton.frame = CGRectMake(0, 0, 40, 30);
+    [listButton addTarget:self action:@selector(listButtonClick) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithCustomView:listButton];
+    self.navigationItem.rightBarButtonItem = rightItem;
+}
+
+- (void)listButtonClick{
+    [UIView animateWithDuration:0.5 animations:^{
+        if (self.TypeTableView.origin.x >= kDeviceWidth) {
+            self.TypeTableView.frame = CGRectMake(kDeviceWidth-200, 0,200, kDeviceHeight);
+        }else{
+            self.TypeTableView.frame = CGRectMake(kDeviceWidth, 0,200, kDeviceHeight);
+        }
+    }];
+}
+
+- (void)RequestTradeDataWithType:(TrandeRecordType)type refreshView:(BOOL )isrefresh ishead:(BOOL) ishead{
+    NSString *typeNum;
+    switch (type) {
+        case TrandeRecordTypeAll:
+            typeNum = @"";
+            break;
+        case TrandeRecordTypeRecharge:
+            typeNum = @"2";
+            break;
+        case TrandeRecordTypeWithdrawals:
+            typeNum = @"3";
+            break;
+        case TrandeRecordTypeBid:
+            typeNum = @"5";
+            break;
+        case TrandeRecordTypeReceivables:
+            typeNum = @"7";
+            break;
+        case TrandeRecordTypeBidAward:
+            typeNum = @"11";
+            break;
+        case TrandeRecordTypeInterest:
+            typeNum = @"9";
+            break;
+        case TrandeRecordTypeRecommendAward:
+            typeNum = @"7";
+            break;
+        case TrandeRecordTypeCurrentJoin:
+            typeNum = @"48";
+            break;
+        case TrandeRecordTypeCurrentWithDraw:
+            typeNum = @"49";
+            break;
+        case TrandeRecordTypeRegistCash:
+            typeNum = @"50";
+            break;
+        default:
+            break;
+    }
+//    if (!isrefresh) {
+//        [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+//    }
+
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    [params setObject:[NSString stringWithFormat:@"%d",currentIndex] forKey:@"index"];
+    [params setObject:typeNum forKey:@"ptype"];
+
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppTallyServlet" parameters:params result:^(id result) {
+//        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        if (isrefresh) {
+            if (ishead) {
+                [self.TradeRecordTableView.mj_header endRefreshing];
+            }else{
+                [self.TradeRecordTableView.mj_footer endRefreshing];
+            }
+        }
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& success==0) {
+                [self requestLogin:logintypeHome];
+            }else if(success==1 && [[result objectForKey:@"errorlog"]isEqualToString:@""]){
+                if (ishead) {
+                    if (self.dataSourceArray.count > 0) {
+                        [self.dataSourceArray removeAllObjects];
+                    }
+                }
+                NSString *pageCount = [NSString stringWithFormat:@"%@",[result objectForKey:@"pageCount"]];
+                if (currentIndex >= pageCount.integerValue) {
+                    [self.TradeRecordTableView.mj_footer endRefreshingWithNoMoreData];
+                }
+                
+                NSArray *arr = [result objectForKey:@"items"];
+                for (NSDictionary *dic in arr) {
+                    TrandRecordModel *model = [[TrandRecordModel alloc] init];
+                    model.incomeAmount = [dic objectForKey:@"incomeAmount"];
+                    model.createDate = [dic objectForKey:@"createDate"];
+                    model.tallyType = [dic objectForKey:@"tallyType"];
+                    model.isIncome = [NSString stringWithFormat:@"%d",[[dic objectForKey:@"isIncome"] integerValue]];
+                    model.balance = [NSString stringWithFormat:@"余额：%@",[dic objectForKey:@"balance"]];
+                    [_dataSourceArray addObject:model];
+                }
+                [_TradeRecordTableView reloadData];
+                currentIndex ++;
+            }
+            else{
+                [AddHudView addProgressView:self.view message:@"数据获取失败，请重新获取"];
+            }
+        }
+    }];
+}
+
+- (void)RequestLingQianbaoDatarefreshView:(BOOL )isrefresh ishead:(BOOL) ishead{
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] init];
+    [params setObject:[NSString stringWithFormat:@"%d",currentIndex] forKey:@"index"];
+    
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppCurrentTallyServlet" parameters:params result:^(id result) {
+        if (isrefresh) {
+            if (ishead) {
+                [self.TradeRecordTableView.mj_header endRefreshing];
+            }else{
+                [self.TradeRecordTableView.mj_footer endRefreshing];
+            }
+        }
+        
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@"noLogin"]&& success==0) {
+                [self requestLogin:logintypeHome];
+            }else if(success==1 && [[result objectForKey:@"errorlog"]isEqualToString:@""]){
+                if (ishead) {
+                    if (self.dataSourceArray.count > 0) {
+                        [self.dataSourceArray removeAllObjects];
+                    }
+                }
+                NSString *pageCount = [NSString stringWithFormat:@"%@",[result objectForKey:@"pageCount"]];
+                if (currentIndex >= pageCount.integerValue) {
+                    [self.TradeRecordTableView.mj_footer endRefreshingWithNoMoreData];
+                }
+                
+                NSArray *arr = [result objectForKey:@"items"];
+                for (NSDictionary *dic in arr) {
+                    TrandRecordModel *model = [[TrandRecordModel alloc] init];
+                    model.incomeAmount = [dic objectForKey:@"incomeAmount"];
+                    model.createDate = [dic objectForKey:@"createDate"];
+                    model.tallyType = [dic objectForKey:@"tallyType"];
+                    model.isIncome = [NSString stringWithFormat:@"%d",[[dic objectForKey:@"isIncome"] integerValue]];
+                    model.balance = [NSString stringWithFormat:@"余额：%@",[dic objectForKey:@"balance"]];
+                    [_dataSourceArray addObject:model];
+                }
+                [_TradeRecordTableView reloadData];
+                currentIndex ++;
+            }
+            else{
+                [AddHudView addProgressView:self.view message:@"数据获取失败，请重新获取"];
+            }
+        }
+    }];
+}
+
+#pragma mark - tableView
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    if (tableView == self.TypeTableView) {
+        return self.TypeArr.count;
+    }else{
+        return _dataSourceArray.count;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (tableView == self.TypeTableView) {
+        static NSString *indetifier = @"TYPECELL";
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:indetifier];
+        if (!cell) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:indetifier];
+        }
+        cell.textLabel.text = self.TypeArr[indexPath.row];
+        cell.textLabel.font = TEXTFONT(15);
+        cell.textLabel.textColor = [UIColor colorWithHex:0x333333];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        if (indexPath.row < self.TypeArr.count-1) {
+            cell.separatorInset = UIEdgeInsetsMake(0, 15, 0, 0);
+            
+        }else{
+            cell.separatorInset = UIEdgeInsetsMake(0, 0, 0, 0);
+        }
+        return cell;
+    }else{
+        TrandReecordCell * cell = [tableView dequeueReusableCellWithIdentifier:@"TrandReecordCell"];
+        if (!cell)
+        {
+            [tableView registerNib:[UINib nibWithNibName:@"TrandReecordCell" bundle:nil] forCellReuseIdentifier:@"TrandReecordCell"];
+            cell = [tableView dequeueReusableCellWithIdentifier:@"TrandReecordCell"];
+        }
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        if (_dataSourceArray.count>=indexPath.row) {
+            cell.model = [_dataSourceArray objectAtIndex:indexPath.row];
+        }
+        return cell;
+    }
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (tableView == self.TypeTableView) {
+        return 45;
+    }else{
+        return 60;
+    }
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    if (tableView == self.TypeTableView) {
+        [UIView animateWithDuration:0.5 animations:^{
+            self.TypeTableView.frame = CGRectMake(kDeviceWidth, 0,200, kDeviceHeight);
+        } completion:^(BOOL finished) {
+            NSString *Title = self.TypeArr[indexPath.row];
+
+            if ([Title isEqualToString:@"全部"]) {
+                self.title = @"交易记录";
+            }else{
+                self.title = Title;
+            }
+            self.TrandeType = indexPath.row;
+            [_TradeRecordTableView.mj_header beginRefreshing];
+        }];
+    }
+}
+
+-(NSAttributedString *)titleForEmptyDataSet:(UIScrollView *)scrollView
+{
+    NSString *text = nil;
+    UIFont *font = nil;
+    UIColor *textColor = nil;
+    NSMutableDictionary *attributes = [NSMutableDictionary new];
+    
+    text = @"暂无数据，点击重新加载";
+    font = [UIFont systemFontOfSize:13];
+    textColor = [UIColor colorWithHex:0x333333];
+    
+    if (!text) {
+        return nil;
+    }
+    if (font) {
+        [attributes setObject:font forKey:NSFontAttributeName];
+    }
+    if (textColor) {
+        [attributes setObject:textColor forKey:NSForegroundColorAttributeName];
+    }
+    return [[NSAttributedString alloc] initWithString:text attributes:attributes];
+}
+
+- (BOOL)emptyDataSetShouldAllowScroll:(UIScrollView *)scrollView{
+    return YES;
+}
+
+-(UIImage *)imageForEmptyDataSet:(UIScrollView *)scrollView
+{
+    return [UIImage imageNamed:@"Date_Empty"];
+}
+
+- (BOOL)emptyDataSetShouldAllowTouch:(UIScrollView *)scrollView{
+    return  YES;
+}
+
+- (void)emptyDataSet:(UIScrollView *)scrollView didTapView:(UIView *)view{
+    [self.TradeRecordTableView.mj_header beginRefreshing];
+}
+
+
+@end

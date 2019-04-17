@@ -1,0 +1,20 @@
+//
+//  MSUCustomTF1.m
+//  VimLC
+//
+//  Created by 007 on 2018/4/26.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUCustomTF1.h"
+
+@implementation MSUCustomTF1
+
+//控制placeHolder的位置，左右缩20
+-(CGRect)placeholderRectForBounds:(CGRect)bounds {
+    //return CGRectInset(bounds, 20, 0);
+    CGRect inset = CGRectMake(bounds.origin.x+20, bounds.origin.y + 5, bounds.size.width, bounds.size.height);//更好理解些
+    return inset;
+    
+}
+@end

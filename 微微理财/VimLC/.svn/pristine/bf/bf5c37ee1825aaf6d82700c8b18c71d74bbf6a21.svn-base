@@ -1,0 +1,508 @@
+//
+//  TradeDetailViewController.m
+//  WTJR
+//
+//  Created by HM on 16/6/7.
+//  Copyright © 2016年 HM. All rights reserved.
+//
+
+#import "TradeDetailViewController.h"
+#import "UIImageView+WebCache.h"
+#import "LoanBidrecordCell.h"
+#import "LoanRepaymentPlanCell.h"
+#import "BuyTradeViewController.h"
+#import "LoginViewController.h"
+@interface TradeDetailViewController ()<UITableViewDelegate,UITableViewDataSource>
+
+@property (weak, nonatomic) IBOutlet UIView *CenterView;
+@property (weak, nonatomic) IBOutlet UILabel *loanType;
+@property (weak, nonatomic) IBOutlet UILabel *loanTitle;
+@property (weak, nonatomic) IBOutlet UILabel *loanAcount;
+@property (weak, nonatomic) IBOutlet UILabel *loanrate;
+@property (weak, nonatomic) IBOutlet UILabel *loanTime;
+@property (weak, nonatomic) IBOutlet UILabel *loanPerson;
+@property (weak, nonatomic) IBOutlet UILabel *loanMode;
+@property (weak, nonatomic) IBOutlet UILabel *loanExpire;
+@property (weak, nonatomic) IBOutlet UILabel *completePercent;
+@property (weak, nonatomic) IBOutlet UILabel *leftMoney;
+
+@property (weak, nonatomic) IBOutlet UIButton *loanInfoButton;
+@property (weak, nonatomic) IBOutlet UIButton *recordButton;
+@property (weak, nonatomic) IBOutlet UIButton *repaymentButton;
+
+@property (weak, nonatomic) IBOutlet UIView *line1;
+@property (weak, nonatomic) IBOutlet UIView *line2;
+@property (weak, nonatomic) IBOutlet UIView *line3;
+@property (weak, nonatomic) IBOutlet UIView *line4;
+@property (weak, nonatomic) IBOutlet UIView *line5;
+
+@property (weak, nonatomic) IBOutlet UIProgressView *progressView;
+
+@property (nonatomic,strong) NSMutableDictionary *infoDic;
+@property (weak, nonatomic) IBOutlet UIView *BottomView;
+
+@property (nonatomic,strong) UITableView *tableView;
+@property (nonatomic,strong) NSMutableArray *dataArr;
+@property (weak, nonatomic) IBOutlet UIButton *BuyButton;
+
+
+@property (strong, nonatomic)UIView *RedlineView;
+
+
+@end
+
+@implementation TradeDetailViewController
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self requestData];
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    _dataArr = [[NSMutableArray alloc] init];
+    self.title = @"借款详情";
+}
+- (UIView *)RedlineView{
+    if (!_RedlineView) {
+        _RedlineView = [[UIView alloc] initWithFrame:CGRectMake(0, self.CenterView.top-2, kDeviceWidth/3, 3)];
+        _RedlineView.backgroundColor = [UIColor colorWithHex:0xfb6337];
+    }
+    return _RedlineView;
+}
+- (void)requestData{
+    
+    _infoDic = [[NSMutableDictionary alloc] init];
+    NSLog(@"lunaP2pBorrowId%@",_Loanmodel.lunaP2pBorrowId);
+    NSMutableDictionary *dic= [[NSMutableDictionary alloc] init];
+    [dic setObject:_Loanmodel.lunaP2pBorrowId forKey:@"brid"];
+    
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppBorrowServlet" parameters:dic result:^(id result) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& success==1)
+            {
+                NSArray *arr = [result objectForKey:@"items"];
+                NSMutableDictionary *dics = [arr objectAtIndex:0];
+                _infoDic = dics;
+                [self setUIWithDic:_infoDic];
+
+            }
+            NSLog(@"LunaP2pAppBorrowServlet= %@",_infoDic);
+        }
+    }];
+
+}
+- (void)setUIWithDic:(NSMutableDictionary *)dic{
+    
+    [self.view addSubview:self.RedlineView];
+    
+    _loanType.text = [dic objectForKey:@"borrowTypeOther"];
+    _loanTitle.text = [dic objectForKey:@"title"];
+    
+    NSArray *arr = [dic objectForKey:@"bids"];
+    [_recordButton setTitle:[NSString stringWithFormat:@"投标记录（%d）",arr.count] forState:UIControlStateNormal];
+    [_recordButton setTitle:[NSString stringWithFormat:@"投标记录（%d）",arr.count] forState:UIControlStateSelected];
+    
+    NSString *acountString = [NSString stringWithFormat:@"%@",[dic objectForKey:@"amountW"]];
+    NSMutableAttributedString * moneyString = [self setAttributedString:acountString font:[UIFont systemFontOfSize:18] color:[UIColor colorWithHex:0x4a4a4a]];
+    [moneyString appendAttributedString:[self setAttributedString:@"万元" font:[UIFont systemFontOfSize:12] color:[UIColor colorWithHex:0x4a4a4a]]];
+    _loanAcount.attributedText = moneyString ;
+    
+    
+    
+    NSString *rateString =[NSString stringWithFormat:@"%@%@",[dic objectForKey:@"rate"],[dic objectForKey:@"rateIncrease"]];
+    NSRange RateRange= [rateString rangeOfString:[dic objectForKey:@"rate"]];
+    NSMutableAttributedString *rateAstring = [[NSMutableAttributedString alloc] initWithString:rateString];
+    [rateAstring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:NSMakeRange(0, rateString.length)];
+    [rateAstring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:18] range:NSMakeRange(0, RateRange.length-1)];
+    [rateAstring addAttribute:NSForegroundColorAttributeName value:RGBA(255, 127, 39, 1) range:RateRange];
+    self.loanrate.attributedText = rateAstring;
+    
+    
+    
+//    NSString *rataString = [NSString stringWithFormat:@"%@",[dic objectForKey:@"rate"]];
+//     NSMutableAttributedString * rataAtt =[self setAttriButedString:rataString font:[UIFont systemFontOfSize:18] color:RGBA(255, 127, 39, 1) searchString:@"%" font:[UIFont systemFontOfSize:12] color:RGBA(255, 127, 39, 1)];
+//    _loanrate.attributedText = rataAtt ;
+
+    
+    NSString *timeString = [NSString stringWithFormat:@"%@",[dic objectForKey:@"timeCount"]];
+    
+    
+    NSRange range = NSMakeRange(0,timeString.length);
+    NSRange range1= NSMakeRange(timeString.length-1,1);
+    
+    NSMutableAttributedString *Astring = [[NSMutableAttributedString alloc] initWithString:timeString];
+    [Astring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:18]  range:range];
+    
+    [Astring addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0x4a4a4a] range:range1];
+    
+    [Astring addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:range1];
+    [Astring addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithHex:0x4a4a4a] range:range1];
+
+    _loanTime.attributedText = Astring ;
+    
+    NSInteger completePercent = [[dic objectForKey:@"completePercent"] integerValue];
+    
+    NSString *borrowState = [dic objectForKey:@"borrowState"];
+    if ([borrowState isEqualToString:@"流标"]) {
+        _BuyButton.enabled = NO;
+        [_BuyButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+        [_BuyButton setTitle:@"流标" forState:UIControlStateNormal];
+        
+    }else if([borrowState isEqualToString:@"招标中"]){
+        [_BuyButton setBackgroundColor:[UIColor colorWithHex:0x5381ff]];
+        [_BuyButton setTitle:@"立即投资" forState:UIControlStateNormal];
+        _BuyButton.enabled = YES;
+        
+    }else if([borrowState isEqualToString:@"已还清"]){
+        [_BuyButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+        [_BuyButton setTitle:@"已还清" forState:UIControlStateNormal];
+        _BuyButton.enabled = NO;
+        
+    }else if([borrowState isEqualToString:@"逾期"]){
+        [_BuyButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+        [_BuyButton setTitle:@"逾期" forState:UIControlStateNormal];
+        _BuyButton.enabled = NO;
+    }else if([borrowState isEqualToString:@"还款中"]){
+        [_BuyButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+        [_BuyButton setTitle:@"还款中" forState:UIControlStateNormal];
+        _BuyButton.enabled = NO;
+    }else{
+        [_BuyButton setBackgroundColor:[UIColor colorWithHex:0xd8d8d8]];
+        [_BuyButton setTitle:borrowState forState:UIControlStateNormal];
+        _BuyButton.enabled = NO;
+    }
+    _progressView.progress = [[dic objectForKey:@"completePercent"] floatValue]/100;
+    
+    _completePercent.text = [NSString stringWithFormat:@"已加入%.2lf％",[[dic objectForKey:@"completePercent"] floatValue]];
+    _loanPerson.text = [dic objectForKey:@"borrowUserName"];
+    _loanMode.text = [dic objectForKey:@"calculationType"];
+    _loanExpire.text = [dic objectForKey:@"endBidDate"];
+    _leftMoney.text = [NSString stringWithFormat:@"剩余：%@元",[dic objectForKey:@"amountLeft"]];
+    
+    _loanInfoButton.selected = YES;
+    _recordButton.selected = NO;
+    _repaymentButton.selected = NO;
+    _line1.hidden = YES;
+    _line2.hidden = NO;
+    _line3.hidden = NO;
+    _line4.hidden = NO;
+    _line5.hidden = YES;
+
+    [self AddloanInfo];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+-(void)AddloanInfo{
+    
+    for (UIView *views in _BottomView.subviews) {
+        [views removeFromSuperview];
+    }
+    
+    UIScrollView *ScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, _BottomView.height)];
+    
+    [_BottomView addSubview:ScrollView];
+    
+    UILabel *loanCircumstance = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, kDeviceWidth-20, 22)];
+    loanCircumstance.text = @"借款描述";
+    UIFont *font = [UIFont fontWithName:@"PingFangSC-Medium"size:18];//这个是9.0以后自带的平方字体
+    if (font==nil) {
+        font = [UIFont systemFontOfSize:16];
+    }
+    loanCircumstance.font = font;
+    loanCircumstance.textColor = [UIColor colorWithHex:0x666666];
+    [ScrollView addSubview:loanCircumstance];
+    
+
+    
+    UILabel *bankLable = [[UILabel alloc] initWithFrame:CGRectMake(10, loanCircumstance.bottom+10, kDeviceWidth-20, 20)];
+    bankLable.font = TEXTFONT(14);
+    bankLable.textColor  =[ UIColor colorWithHex:0x666666];
+    bankLable.text = [NSString stringWithFormat:@"承兑银行：%@",[_infoDic objectForKey:@"borrowBank"]];
+    [ScrollView addSubview:bankLable];
+    
+    
+    UILabel *ticketAmountLable = [[UILabel alloc] initWithFrame:CGRectMake(10, bankLable.bottom+10, kDeviceWidth-20, 20)];
+    ticketAmountLable.font = TEXTFONT(14);
+    ticketAmountLable.textColor  =[ UIColor colorWithHex:0x666666];
+    ticketAmountLable.text = [NSString stringWithFormat:@"票面金额：%@",[_infoDic objectForKey:@"ticketAmount"]];
+    [ScrollView addSubview:ticketAmountLable];
+    
+    
+    UILabel *ticketCodeLable = [[UILabel alloc] initWithFrame:CGRectMake(10, ticketAmountLable.bottom+10, kDeviceWidth-20, 20)];
+    ticketCodeLable.font = TEXTFONT(14);
+    ticketCodeLable.textColor  =[ UIColor colorWithHex:0x666666];
+    ticketCodeLable.text = [NSString stringWithFormat:@"票       号：%@",[_infoDic objectForKey:@"ticketCode"]];
+    [ScrollView addSubview:ticketCodeLable];
+
+    
+    UILabel *riskinfo = [[UILabel alloc] initWithFrame:CGRectMake(10, ticketCodeLable.bottom +15, kDeviceWidth-20, 22)];
+    riskinfo.text = @"风控信息";
+    riskinfo.font = font;
+    riskinfo.textColor = [UIColor colorWithHex:0x666666];
+    [ScrollView addSubview:riskinfo];
+    
+    
+    
+    UILabel *GuarantorsLable = [[UILabel alloc] initWithFrame:CGRectMake(10, riskinfo.bottom+10, kDeviceWidth-20,20)];
+    
+    GuarantorsLable.text = [NSString stringWithFormat:@"保理公司：%@",[_infoDic objectForKey:@"userCompanyName"]] ;
+    GuarantorsLable.font = TEXTFONT(14);
+    GuarantorsLable.textColor  =[ UIColor colorWithHex:0x666666];
+    [ScrollView addSubview:GuarantorsLable];
+    
+    
+    NSString *borrowGuaranteeString = [NSString stringWithFormat:@"还款来源：%@",[_infoDic objectForKey:@"paymentSource"]];
+    
+    NSDictionary *dict = @{NSFontAttributeName:TEXTFONT(14)};
+    
+    CGRect rect2 = [borrowGuaranteeString boundingRectWithSize:CGSizeMake(kDeviceWidth-40, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:dict context:nil];
+    
+    UILabel *borrowGuaranteeLable = [[UILabel alloc] init];
+    borrowGuaranteeLable.numberOfLines = 0;
+    borrowGuaranteeLable.textColor = [UIColor colorWithHex:0x666666];
+    borrowGuaranteeLable.frame = CGRectMake(10, GuarantorsLable.bottom, kDeviceWidth-20, rect2.size.height);
+    borrowGuaranteeLable.text = borrowGuaranteeString;
+    borrowGuaranteeLable.font = TEXTFONT(14);
+    [ScrollView addSubview:borrowGuaranteeLable];
+
+    
+    UILabel *loanMaterial = [[UILabel alloc] initWithFrame:CGRectMake(10, borrowGuaranteeLable.bottom +10, kDeviceWidth-20, 22)];
+    loanMaterial.text = @"借款材料";
+    loanMaterial.font = font;
+    loanMaterial.textColor = [UIColor colorWithHex:0x666666];
+    [ScrollView addSubview:loanMaterial];
+    
+    
+    NSArray *arr = [_infoDic objectForKey:@"borrowImages"];
+    float lineNum  = (arr.count+1)/2;
+    float imagewidth = (kDeviceWidth-30)/2;
+    
+    for (int i = 0; i<arr.count; i++) {
+        NSMutableDictionary *imagedic= arr[i];
+        NSString *imageUrl = [imagedic objectForKey:@"borrowImageUrl"];
+        UIImageView *images =[[UIImageView alloc] init];
+        images.frame = CGRectMake(10*(i%2+1)+imagewidth *(i%2) , loanMaterial.bottom + 10+ 100 *(i/2) , imagewidth, 100) ;
+        [images sd_setImageWithURL:[NSURL URLWithString:imageUrl] placeholderImage:[UIImage imageNamed:@"image_empty"]];
+        [ScrollView addSubview:images];
+    }
+    ScrollView.contentSize = CGSizeMake(0, borrowGuaranteeLable.bottom +40 + lineNum*100);
+    
+}
+- (IBAction)loanInfoClick:(id)sender {
+    for (UIView *views in _BottomView.subviews) {
+        [views removeFromSuperview];
+    }
+    
+    _loanInfoButton.selected = YES;
+    _recordButton.selected = NO;
+    _repaymentButton.selected = NO;
+    _line1.hidden = YES;
+    _line2.hidden = NO;
+    _line3.hidden = NO;
+    _line4.hidden = NO;
+    _line5.hidden = YES;
+    [UIView animateWithDuration:0.3 animations:^{
+        [self.RedlineView setFrame:CGRectMake(0, self.CenterView.top-2, kDeviceWidth/3, 3)];
+    }];
+    [self AddloanInfo];
+    self.TradeinfoType = TradeinfoTypeloanInfo;
+
+}
+//投标记录
+- (IBAction)recordClick:(id)sender {
+    _loanInfoButton.selected = NO;
+    _recordButton.selected = YES;
+    _repaymentButton.selected = NO;
+    _line1.hidden = NO;
+    _line2.hidden = NO;
+    _line3.hidden = YES;
+    _line4.hidden = YES;
+    _line5.hidden = NO;
+    [UIView animateWithDuration:0.3 animations:^{
+        [self.RedlineView setFrame:CGRectMake(kDeviceWidth/3*2, self.CenterView.top-2, kDeviceWidth/3, 3)];
+    }];
+    for (UIView *views in _BottomView.subviews) {
+        [views removeFromSuperview];
+    }
+    self.TradeinfoType = TradeinfoTypeBidrecord;
+    if (_dataArr.count >0) {
+        [_dataArr removeAllObjects];
+    }
+    _dataArr = [[_infoDic objectForKey:@"bids"] mutableCopy];
+    [self addTableViews];
+
+}
+//还款计划
+- (IBAction)repaymentClick:(id)sender {
+    _loanInfoButton.selected = NO;
+    _recordButton.selected = NO;
+    _repaymentButton.selected = YES;
+    _line1.hidden = NO;
+    _line2.hidden = YES;
+    _line3.hidden = NO;
+    _line4.hidden = NO;
+    _line5.hidden = NO;
+    [UIView animateWithDuration:0.3 animations:^{
+        [self.RedlineView setFrame:CGRectMake(kDeviceWidth/3, self.CenterView.top-2, kDeviceWidth/3, 3)];
+    }];
+    for (UIView *views in _BottomView.subviews) {
+        [views removeFromSuperview];
+    }
+    self.TradeinfoType = TradeinfoTypeRepaymentplan;
+    if (_dataArr.count >0) {
+        [_dataArr removeAllObjects];
+    }
+    _dataArr = [[_infoDic objectForKey:@"repaymentPlans"] mutableCopy];
+
+    [self addTableViews];
+}
+
+- (void)addTableViews{
+    
+    if (_tableView != nil) {
+        [_tableView removeFromSuperview];
+    }
+    
+    _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0,_BottomView.width, _BottomView.height) style:UITableViewStylePlain];
+    _tableView.delegate = self;
+    _tableView.backgroundColor = [UIColor clearColor];
+    _tableView.dataSource = self;
+    _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    [_BottomView addSubview:_tableView];
+    
+//    if (self.TradeinfoType != TradeinfoTypeBidrecord) {
+//        UIView *headView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, 30)];
+//        headView.backgroundColor = RGBA(244, 244, 244, 1);
+//        
+//        NSArray *arr = @[@"期次",@"还款总额",@"还款日期"];
+//        for (int i = 0; i < 3 ; i++) {
+//            UILabel *labe = [[UILabel alloc] initWithFrame:CGRectMake(headView.width/3 *i, 0, headView.width/3, 30)];
+//            labe.text = arr[i];
+//            labe.textColor = RGBA(127, 127, 127, 1);
+//            labe.font = TEXTFONT(14);
+//            labe.textAlignment = NSTextAlignmentCenter;
+//            [headView addSubview:labe];
+//        }
+//        _tableView.tableHeaderView = headView;
+//    }
+    
+}
+
+
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return _dataArr.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    
+    if (self.TradeinfoType == TradeinfoTypeBidrecord ) {
+        LoanBidrecordCell * cell = [tableView dequeueReusableCellWithIdentifier:@"LoanBidrecordCell"];
+        if (!cell)
+        {
+            [tableView registerNib:[UINib nibWithNibName:@"LoanBidrecordCell" bundle:nil] forCellReuseIdentifier:@"LoanBidrecordCell"];
+            
+            cell = [tableView dequeueReusableCellWithIdentifier:@"LoanBidrecordCell"];
+        }
+        NSMutableDictionary *dic = [_dataArr objectAtIndex:indexPath.row];
+        cell.BidAmount.text = [NSString stringWithFormat:@"%@元",[dic objectForKey:@"bidAmount"]];
+        cell.UsernameMask.text = [dic objectForKey:@"usernameMask"];
+        
+        NSString *time = [dic objectForKey:@"bidTime"];
+        NSString *timestring = [[time componentsSeparatedByString:@"."] objectAtIndex:0];
+        NSString  *bidNote =[dic objectForKey:@"bidNote"];
+        if (bidNote.length>0) {
+            cell.LoanTime.text = [NSString stringWithFormat:@"%@ (%@)",timestring,[dic objectForKey:@"bidNote"]];
+        }else{
+            cell.LoanTime.text = [NSString stringWithFormat:@"%@",timestring];
+        }
+        cell.selectionStyle =UITableViewCellSelectionStyleNone;
+        return cell;
+        
+    }else{
+        LoanRepaymentPlanCell * cell = [tableView dequeueReusableCellWithIdentifier:@"LoanRepaymentPlanCell"];
+        if (!cell)
+        {
+            [tableView registerNib:[UINib nibWithNibName:@"LoanRepaymentPlanCell" bundle:nil] forCellReuseIdentifier:@"LoanRepaymentPlanCell"];
+            cell = [tableView dequeueReusableCellWithIdentifier:@"LoanRepaymentPlanCell"];
+        }
+        if (_dataArr.count>=indexPath.row) {
+            NSMutableDictionary *dic = [_dataArr objectAtIndex:indexPath.row];
+            
+            NSString *DataString = [NSString stringWithFormat:@"%d",indexPath.row+1];
+            
+            NSMutableAttributedString * moneyString = [self setAttributedString:DataString font:[UIFont systemFontOfSize:24] color:[UIColor colorWithHex:0x4a4a4a]];
+            
+            [moneyString appendAttributedString:[self setAttributedString:@"期" font:[UIFont systemFontOfSize:14] color:[UIColor colorWithHex:0x4a4a4a]]];
+            cell.Periodlabel.attributedText = moneyString ;
+            
+//            cell.Periodlabel.text = [dic objectForKey:@"planIndex"];
+            
+            cell.PepaymentAcount.text = [dic objectForKey:@"repaySumAmount"];
+            cell.RepaymentDate.text = [dic objectForKey:@"expireDate"];
+            
+        }
+        if (indexPath.row%2 == 0) {
+            cell.BGview.backgroundColor = [UIColor clearColor];
+        }else{
+            cell.BGview.backgroundColor = [UIColor colorWithHex:0xf0f0f0];
+        }
+        cell.selectionStyle =UITableViewCellSelectionStyleNone;
+        return cell;
+    }
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 57;
+}
+-(NSMutableAttributedString *)setAttributedString:(NSString *)string font:(UIFont *)font color:(UIColor *)color
+{
+    NSRange range = NSMakeRange(0,string.length);
+    NSMutableAttributedString *mulString = [[NSMutableAttributedString alloc] initWithString:string];
+    [mulString addAttribute:NSFontAttributeName value:font range:range];
+    [mulString addAttribute:NSForegroundColorAttributeName value:color range:range];
+    return mulString ;
+}
+
+- (NSMutableAttributedString *)setAttriButedString:(NSString *)string font:(UIFont *)font color:(UIColor *)color searchString:(NSString *)searchString font:(UIFont *)searchfont color:(UIColor *)searchcolor {
+    NSRange range = NSMakeRange(0,string.length);
+
+    NSRange range1= [string rangeOfString:searchString];
+
+    NSMutableAttributedString *Astring = [[NSMutableAttributedString alloc] initWithString:string];
+    [Astring addAttribute:NSFontAttributeName value:font  range:range];
+    [Astring addAttribute:NSForegroundColorAttributeName value:color range:range1];
+
+    [Astring addAttribute:NSFontAttributeName value:searchfont range:range1];
+    [Astring addAttribute:NSForegroundColorAttributeName value:searchcolor range:range1];
+    return Astring;
+}
+- (IBAction)BuyClick:(id)sender {
+    
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *dic = [userDefaults objectForKey:@"registerData"];
+    if ([dic objectForKey:@"UserName"] && [dic objectForKey:@"PassWord"]) {
+        BuyTradeViewController *BuyVC = [[BuyTradeViewController alloc] init];
+        BuyVC.model = self.Loanmodel;
+        [self.navigationController pushViewController:BuyVC animated:YES];
+    }else{
+        [CoreArchive removeNSUserDefaults];
+        LoginViewController *loginView = [[LoginViewController alloc] init];
+        loginView.loginType = logintypeHome;
+        loginView.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:loginView animated:YES];
+    }
+}
+
+@end

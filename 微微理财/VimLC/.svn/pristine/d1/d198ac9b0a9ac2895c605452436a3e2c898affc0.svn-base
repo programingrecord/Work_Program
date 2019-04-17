@@ -1,0 +1,283 @@
+//
+//  MSUTradeDetailController.m
+//  VimLC
+//
+//  Created by 007 on 2018/1/11.
+//  Copyright © 2018年 HM. All rights reserved.
+//
+
+#import "MSUTradeDetailController.h"
+#import "BuyTradeViewController.h"
+#import "LoginViewController.h"
+
+#import "MSUTradeTopView.h"
+#import "MSUTradeBottomView.h"
+#import "MSUTradeDetailView.h"
+#import "MSUQuestionView.h"
+
+#import "CoreArchive.h"
+#import "MSUPathTools.h"
+
+#import <UMAnalytics/MobClick.h>
+
+@interface MSUTradeDetailController ()<UIScrollViewDelegate>
+
+@property (nonatomic , strong) UIScrollView *scrollView;
+@property (nonatomic , strong) MSUTradeTopView *topView;
+@property (nonatomic , strong) MSUTradeBottomView *bottomView;
+@property (nonatomic , strong) MSUTradeDetailView *nextView;
+@property (nonatomic , assign) BOOL isScrollDown;
+
+/// 更多信息view
+@property (nonatomic , strong) UIView *moreView;
+
+/// 投资View
+@property (nonatomic , strong) UIView *touZiView;
+@property (nonatomic , strong) UIButton *touZiBtn;
+
+@property (nonatomic , strong) NSDictionary *dataDic;
+@property (nonatomic , strong) UIImageView *adImaView;
+
+@end
+
+@implementation MSUTradeDetailController
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self requestData];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.title = [NSString stringWithFormat:@"%@",_postDic[@"showName"]];
+    
+    [MobClick event:@"dingqibiao" durations:2];
+
+    
+    [self createUIView];
+}
+
+- (void)createUIView{
+    self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, kDeviceHeight)];
+    _scrollView.backgroundColor  = LineColor;
+    _scrollView.contentSize = CGSizeMake(kDeviceWidth, kDeviceHeight+20*kDeviceHeightScale);
+    _scrollView.scrollEnabled = YES;
+    _scrollView.delegate = self;
+    _scrollView.showsHorizontalScrollIndicator = NO;
+    _scrollView.showsVerticalScrollIndicator = NO;
+    self.automaticallyAdjustsScrollViewInsets = NO;
+    [self.view addSubview:_scrollView];
+
+    self.topView = [[MSUTradeTopView alloc] initWithFrame:CGRectMake(0, 0, kDeviceWidth, 209.5*kDeviceHeightScale)];
+    _topView.backgroundColor = HEXCOLOR(0xff6735);
+    [_scrollView addSubview:_topView];
+    
+    self.adImaView = [[UIImageView alloc] initWithFrame:CGRectMake(0, _topView.bottom+13*kDeviceHeightScale, kDeviceWidth, 71*kDeviceHeightScale)];
+//    _adImaView.image = [MSUPathTools showImageWithContentOfFileByName:@""];
+    _adImaView.backgroundColor = HEXCOLOR(0xfff5da);
+    [_scrollView addSubview:_adImaView];
+    
+    self.bottomView = [[MSUTradeBottomView alloc] init];
+    _bottomView.frame = CGRectMake(0, _adImaView.bottom+13*kDeviceHeightScale, kDeviceWidth, (50.5*4+35)*kDeviceHeightScale);
+    _bottomView.backgroundColor = WhiteColor;
+    [_scrollView addSubview:_bottomView];
+
+    self.nextView = [[MSUTradeDetailView alloc] init];
+    _nextView.frame = CGRectMake(0, _bottomView.bottom, kDeviceWidth, kDeviceHeight+300*kDeviceHeightScale);
+    _nextView.backgroundColor = WhiteColor;
+    [_scrollView addSubview:_nextView];
+    _nextView.hidden = YES;
+    
+    /// 
+   self.moreView = [[UIView alloc] init];
+    _moreView.backgroundColor = HEXCOLOR(0xf2f8ff);
+    [self.view addSubview:_moreView];
+    
+    UIButton *moreBtn= [UIButton buttonWithType:UIButtonTypeCustom];
+    moreBtn.frame = CGRectMake(0, 0, kDeviceWidth, 35*kDeviceHeightScale);
+    [_moreView addSubview:moreBtn];
+    [moreBtn addTarget:self action:@selector(moreBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+    UILabel *moreLab = [[UILabel alloc] init];
+    moreLab.frame = CGRectMake(kDeviceWidth*0.5-55*kDeviceWidthScale, 8.5*kDeviceHeightScale, 110*kDeviceWidthScale, 20*kDeviceWidthScale);
+    moreLab.text = @"更多项目信息";
+    moreLab.font = [UIFont systemFontOfSize:14];
+    moreLab.textColor = HEXCOLOR(0x757575);
+    [_moreView addSubview:moreLab];
+
+    UIImageView *imaView = [[UIImageView alloc] initWithFrame:CGRectMake(moreLab.left - 6-13*kDeviceWidthScale, 11.5*kDeviceHeightScale, 13*kDeviceWidthScale, 17*kDeviceHeightScale)];
+    imaView.image = [MSUPathTools showImageWithContentOfFileByName:@"gdxm_icon"];
+    imaView.contentMode =UIViewContentModeScaleAspectFit;;
+    [_moreView addSubview:imaView];
+    
+    self.touZiView = [[UIView alloc] init];
+    _touZiView.backgroundColor = WhiteColor;
+    [self.view addSubview:_touZiView];
+    
+    self.touZiBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    _touZiBtn.frame = CGRectMake(14*kDeviceWidthScale, 12, kDeviceWidth-28*kDeviceHeightScale, 44*kDeviceHeightScale);
+    _touZiBtn.backgroundColor = HEXCOLOR(0xfb6337);
+    _touZiBtn.layer.cornerRadius = 4;
+    _touZiBtn.clipsToBounds = YES;
+    _touZiBtn.layer.shouldRasterize = YES;
+    _touZiBtn.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    NSString *text = @"立即投标";
+    if ([[NSString stringWithFormat:@"%@",_postDic[@"borrowState"]] isEqualToString:@"还款中"] || [[NSString stringWithFormat:@"%@",_postDic[@"borrowState"]] isEqualToString:@"已还清"]) {
+        _touZiBtn.backgroundColor = [UIColor colorWithRed:214/255.0 green:214/255.0 blue:214/255.0 alpha:1];
+        text = [NSString stringWithFormat:@"%@",_postDic[@"borrowState"]];
+        _touZiBtn.enabled = NO;
+    }
+    [_touZiBtn setTitle:text forState:UIControlStateNormal];
+    [_touZiBtn setTitleColor:WhiteColor forState:UIControlStateNormal];
+    _touZiBtn.titleLabel.font = [UIFont systemFontOfSize:18];
+    [_touZiView addSubview:_touZiBtn];
+    [_touZiBtn addTarget:self action:@selector(touZiBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    
+    if (is_iPhoneX) {
+        _moreView.frame = CGRectMake(0, kDeviceHeight-108-(44+35)*kDeviceHeightScale, kDeviceWidth, 35*kDeviceHeightScale);
+        _touZiView.frame = CGRectMake(0, kDeviceHeight-108-44*kDeviceHeightScale, kDeviceWidth,44*kDeviceHeightScale+ 24);
+    } else{
+        _moreView.frame = CGRectMake(0, kDeviceHeight-88-(44+35)*kDeviceHeightScale, kDeviceWidth, 35*kDeviceHeightScale);
+        _touZiView.frame = CGRectMake(0, kDeviceHeight-88-44*kDeviceHeightScale, kDeviceWidth,44*kDeviceHeightScale+ 24);
+    }
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+#pragma mark - 代理
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    static CGFloat lastOffsetY = 0;
+
+//    NSLog(@"---- %f  %f ,%d",lastOffsetY,scrollView.contentOffset.y,_isScrollDown);
+    _isScrollDown = lastOffsetY < scrollView.contentOffset.y;
+    lastOffsetY = scrollView.contentOffset.y;
+    
+    if (scrollView.contentOffset.y > 100 && scrollView.contentOffset.y < _nextView.top && _isScrollDown == 0) {
+        [UIView animateWithDuration:0.25 animations:^{
+            [scrollView setContentOffset:CGPointZero animated:NO];
+            _nextView.hidden = YES;
+        } completion:^(BOOL finished) {
+            _moreView.hidden = NO;
+            _touZiView.hidden = NO;
+            _scrollView.contentSize = CGSizeMake(kDeviceWidth, kDeviceHeight+20*kDeviceHeightScale);
+        }];
+    }
+}
+
+-(void)scrollViewWillBeginDecelerating: (UIScrollView *)scrollView{
+    MyLog(@"1");
+    if (_isScrollDown && scrollView.contentOffset.y < _nextView.top ) {//
+        [UIView animateWithDuration:0.25 animations:^{
+            [scrollView setContentOffset:CGPointMake(0, _nextView.top) animated:NO];
+            _moreView.hidden = YES;
+            _touZiView.hidden = YES;
+            _nextView.hidden = NO;
+            _scrollView.contentSize = CGSizeMake(kDeviceWidth, kDeviceHeight*2+200*kDeviceHeightScale);
+            
+        }];
+    } else if(_isScrollDown == 0 && scrollView.contentOffset.y < _nextView.top && scrollView.contentOffset.y >10){
+        [UIView animateWithDuration:0.25 animations:^{
+            [scrollView setContentOffset:CGPointZero animated:NO];
+            _nextView.hidden = YES;
+        } completion:^(BOOL finished) {
+            _moreView.hidden = NO;
+            _touZiView.hidden = NO;
+            _scrollView.contentSize = CGSizeMake(kDeviceWidth, kDeviceHeight+20*kDeviceHeightScale);
+        }];
+    }
+}
+
+#pragma mark - 初始化
+
+
+#pragma mark - 点击事件
+- (void)touZiBtnClick:(UIButton *)sender{
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSDictionary *dic = [userDefaults objectForKey:@"registerData"];
+    if ([dic objectForKey:@"UserName"] && [dic objectForKey:@"PassWord"]) {
+        BuyTradeViewController *BuyVC = [[BuyTradeViewController alloc] init];
+        BuyVC.dataDic = _dataDic;
+        [self.navigationController pushViewController:BuyVC animated:YES];
+    }else{
+        [CoreArchive removeNSUserDefaults];
+        LoginViewController *loginView = [[LoginViewController alloc] init];
+        loginView.loginType = logintypeHome;
+        loginView.hidesBottomBarWhenPushed = YES;
+        [self.navigationController pushViewController:loginView animated:YES];
+    }
+}
+
+- (void)moreBtnClick:(UIButton *)sender{
+    [UIView animateWithDuration:0.25 animations:^{
+        [self.scrollView setContentOffset:CGPointMake(0, self.nextView.top) animated:NO];
+        _moreView.hidden = YES;
+        _touZiView.hidden = YES;
+        self.nextView.hidden = NO;
+        self.scrollView.contentSize = CGSizeMake(kDeviceWidth, kDeviceHeight*2+200*kDeviceHeightScale);
+    }];
+}
+
+#pragma mark - 请求数据
+- (void)requestData{
+    MyLog(@"lunaP2pBorrowId%@",_postDic[@"lunaP2pBorrowId"]);
+    NSMutableDictionary *dic= [[NSMutableDictionary alloc] init];
+    [dic setObject:[NSString stringWithFormat:@"%@",_postDic[@"lunaP2pBorrowId"]] forKey:@"brid"];
+
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    [[DataRequestServer getDataRequestServerData] request:@"LunaP2pAppBorrowServlet" parameters:dic result:^(id result) {
+        [MBProgressHUD hideHUDForView:self.view animated:YES];
+        if ([result isKindOfClass:[NSString class]] &&  [result isEqualToString:@"44"]) {
+            [AddHudView addProgressView:self.view message:@"网络错误，请稍后再试"];
+        }else{
+            int success = [[result objectForKey:@"success"]intValue];
+            
+            if ([[result objectForKey:@"errorlog"]isEqualToString:@""]&& success==1)
+            {
+                NSArray *arr = [result objectForKey:@"items"];
+                self.dataDic = [arr objectAtIndex:0];
+                [self setUIWithDic:_dataDic withDic:result];
+                
+                /// MSU
+                _nextView.dataArr = @[result[@"pragramIntro"],_dataDic[@"borrowBank"],_dataDic[@"ticketAmount"],_dataDic[@"ticketCode"],_dataDic[@"factoringCompany"],_dataDic[@"paymentSource"]];
+                _nextView.dateArr = result[@"dateArr"];
+                _nextView.imaArr = _dataDic[@"borrowImages"];
+
+                _nextView.planArr = _dataDic[@"repaymentPlans"];
+                _nextView.recordArr = _dataDic[@"bids"];
+            }
+        }
+    }];
+}
+
+- (void)setUIWithDic:(NSDictionary *)dic withDic:(NSDictionary *)totalDic{
+    NSString *str1 = [dic objectForKey:@"rate"];
+
+    _topView.priceLab.text = [NSString stringWithFormat:@"%@",str1];
+    _topView.limitLab.text = [NSString stringWithFormat:@"%@",[dic objectForKey:@"timeCount"]];
+    _topView.surplusLab.text = [NSString stringWithFormat:@"%@",[_dataDic objectForKey:@"amountLeft"]];
+    _topView.totalLab.text = [NSString stringWithFormat:@"%@万",[dic objectForKey:@"amountW"]];
+    
+    _topView.progressView.progress = [[dic objectForKey:@"completePercent"] floatValue]/100;
+    _topView.progressBtn.center = CGPointMake(14*kDeviceWidthScale+_topView.progressView.progress*(kDeviceWidth-28*kDeviceWidthScale),_topView.progressView.top - 17*kDeviceHeightScale);
+    [_topView.progressBtn setTitle:[NSString stringWithFormat:@"%ld%%",[[dic objectForKey:@"completePercent"] integerValue]] forState:UIControlStateNormal];
+    
+    NSArray *arr = @[[dic objectForKey:@"endBidDate"],[dic objectForKey:@"minBidAmount"],[dic objectForKey:@"calculationType"],dic[@"jixiStyle"]];//[dic objectForKey:@"jixiStyle"]
+    _bottomView.dataArr = arr;
+    
+    NSString *str = totalDic[@"adIma"];
+    if (str.length == 0) {
+        _adImaView.hidden = YES;
+        _bottomView.frame = CGRectMake(0, _topView.bottom+13*kDeviceHeightScale, kDeviceWidth, (50.5*4+35)*kDeviceHeightScale);
+        _nextView.frame = CGRectMake(0, _bottomView.bottom, kDeviceWidth, kDeviceHeight+300*kDeviceHeightScale);
+    } else{
+        _adImaView.hidden = NO;
+        [_adImaView sd_setImageWithURL:[NSURL URLWithString:totalDic[@"adIma"]]];
+    }
+}
+
+
+@end

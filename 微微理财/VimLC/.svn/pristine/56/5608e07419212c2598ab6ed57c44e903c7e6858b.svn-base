@@ -1,0 +1,75 @@
+//
+//  BuyTradeResultViewController.m
+//  SmallCat
+//
+//  Created by HMH on 2017/7/4.
+//  Copyright © 2017年 HM. All rights reserved.
+//
+
+#import "BuyTradeResultViewController.h"
+#import "TradeListViewController.h"
+#import "PocketBuyViewController.h"
+#import "BuyTradeViewController.h"
+#import "CenterNewViewController.h"
+
+@interface BuyTradeResultViewController ()
+@property (weak, nonatomic) IBOutlet UILabel *TipLable;
+
+@end
+
+@implementation BuyTradeResultViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    if ([self.title isEqualToString:@"购买成功"]) {
+        self.TipLable.text = @"恭喜您,米粒宝购买成功";
+    }else{
+        self.TipLable.text = @"恭喜你，投标成功";
+    }
+}
+
+- (IBAction)completeButtonClick:(id)sender {
+    for (UIViewController *VC in self.navigationController.viewControllers) {
+        if ([VC isKindOfClass:[CenterNewViewController class]]) {
+            [self.navigationController popToViewController:VC animated:YES];
+            return;
+        }
+    }
+    [self.navigationController popToRootViewControllerAnimated:YES];
+    AppDelegate *jj = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    [jj loadMainView];
+    [jj.mainVC setSelectedIndex:2];
+    
+}
+- (IBAction)continueButtonClick:(id)sender {
+    AppDelegate *jj = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    [jj loadMainView];
+    [jj.mainVC setSelectedIndex:1];
+}
+- (void)BackViewController{
+    [self popViewController];
+}
+
+- (void)popViewController{
+    if (self.presentingViewController != nil) {
+        [self dismissViewControllerAnimated:YES completion:NULL];
+    }else {
+        [self.navigationController popToRootViewControllerAnimated:YES];
+    }
+}
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end
